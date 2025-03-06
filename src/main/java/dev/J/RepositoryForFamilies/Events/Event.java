@@ -19,6 +19,8 @@ public class Event {
     private UUID eventId;
 
     @Id
+    private UUID groupId;
+
     private String userId;
 
     private String description;

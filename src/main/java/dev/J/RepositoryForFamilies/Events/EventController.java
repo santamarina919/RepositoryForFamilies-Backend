@@ -27,7 +27,7 @@ public class EventController {
                                           @RequestParam("groupId") String groupIdStr,
                                           @RequestBody EventBody eventBody){
 
-        eventService.postEvent(auth.getName(),eventBody);
+        eventService.postEvent(auth.getName(),UUID.fromString(groupIdStr),eventBody);
 
 
         return ResponseEntity

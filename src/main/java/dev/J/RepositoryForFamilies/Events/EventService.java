@@ -17,9 +17,9 @@ public class EventService {
     private final GroupsService userService;
 
     @Transactional
-    public void postEvent(String userId, EventController.EventBody body){
+    public void postEvent(String userId, UUID uuid, EventController.EventBody body){
         UUID eventId = UUID.randomUUID();
-        Event event = new Event(eventId,userId,body.description(),body.date(),body.startTime(),body.endTime());
+        Event event = new Event(eventId,uuid,userId,body.description(),body.date(),body.startTime(),body.endTime());
         eventRepository.save(event);
     }
 
