@@ -23,6 +23,10 @@ public class Reservation {
 
     private String userId;
 
+    private UUID groupId;
+
+    private UUID linkedEvent;
+
     private LocalDate date;
 
     private LocalTime startTime;
@@ -32,5 +36,8 @@ public class Reservation {
     private String notes;
 
     private boolean approved;
+
+    private String rejectionNote;
+
 
 }

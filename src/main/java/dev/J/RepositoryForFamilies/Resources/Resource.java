@@ -4,11 +4,14 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 
 import java.util.UUID;
 
 
+
+@ToString
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,5 +26,7 @@ public class Resource {
     private String name;
 
     private String description;
+
+    private String type;
 
 }

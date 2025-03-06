@@ -65,4 +65,6 @@ public interface GroupsRepository extends JpaRepository<Groups,UUID>
         nativeQuery = true)
     boolean isMember(UUID groupId, String email);
 
+    <T> T findById(UUID id,Class<T> clazz);
+
 }

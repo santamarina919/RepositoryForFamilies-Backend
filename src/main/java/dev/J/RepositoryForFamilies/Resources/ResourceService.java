@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -22,22 +24,27 @@ public class ResourceService
 
     private final GroupsService groupsService;
 
-    public List<Resource> allResources(String ownerId){
+    public <T> List<T> allResoucesInGroup(UUID groupId, Class<T> clazz) {
+        return resourceRepository.fetchAllByGroupId(groupId,clazz);
+    }
+
+    public List<Resource> allResourcesFrom(String ownerId){
         return resourceRepository.findAllByOwner(ownerId);
     }
 
+
     @Transactional
-    public void createResource(String owner, String name, String description){
+    public void createResource(String owner, String name, String description,String type){
         UUID resourceId = UUID.randomUUID();
-        Resource r = new Resource(resourceId, owner, name, description);
-        resourceRepository.save(r);
+        //Resource r = new Resource(resourceId, owner, name, description,type);
+        resourceRepository.createResource(resourceId,owner,name,description,type == null ? null : type.toUpperCase());
     }
 
 
     @Transactional
     public boolean deleteResource(UUID groupId, String userId, UUID resourceId){
         UserType type = groupsService.fetchMemberType(groupId,userId);
-        Resource resource = resourceRepository.findResourceByResourceId(resourceId);
+        Resource resource = resourceRepository.findResourceByResourceId(resourceId).orElseThrow();
         if(type != UserType.ADMIN && !resource.getOwner().equals(userId)){
             return false;
         }
@@ -50,7 +57,7 @@ public class ResourceService
 
     @Transactional
     public boolean approveReservation(UUID reservationId, UUID resourceId, String userId){
-        Resource resource = resourceRepository.findResourceByResourceId(resourceId);
+        Resource resource = resourceRepository.findResourceByResourceId(resourceId).orElseThrow();
         if(!resource.getOwner().equals(userId)){
             return false;
         }
@@ -61,7 +68,7 @@ public class ResourceService
 
     @Transactional
     public boolean denyReservation(UUID reservationId, UUID resourceId, String userId, String reason){
-        Resource resource = resourceRepository.findResourceByResourceId(resourceId);
+        Resource resource = resourceRepository.findResourceByResourceId(resourceId).orElseThrow();
         if(!resource.getOwner().equals(userId)){
             return false;
         }
@@ -81,31 +88,43 @@ public class ResourceService
                                    LocalDate reservationDate,
                                    LocalTime startTime,
                                    LocalTime endTime,
-                                   String notes){
-        Reservation r = new Reservation(UUID.randomUUID(),resourceId,userId,reservationDate,startTime,endTime,notes,true);
-        reservationRepository.save(r);
+                                   String notes,
+                                   UUID linkedEvent,
+                                   UUID groupId){
+        resourceRepository.createReservation(
+                UUID.randomUUID(),resourceId,userId,groupId,linkedEvent,reservationDate,startTime,endTime,notes,
+                false,null)
+        ;
+
     }
 
 
     @Transactional
-    public boolean reserveResource(UUID resourceId,
+    public Reservation reserveResource(UUID resourceId,
                                    String userId,
                                    LocalDate reservationDate,
                                    LocalTime startTime,
                                    LocalTime endTime,
-                                   String notes){
-       Resource resource = resourceRepository.findResourceByResourceId(resourceId);
-       if(resource.getOwner().equals(userId)){
-           return false;
+                                   String notes,
+                                   UUID linkedEvent,
+                                   UUID groupId){
+       Resource resource = resourceRepository.findResourceByResourceId(resourceId).orElseThrow();
+       if(!resource.getOwner().equals(userId)){
+            requestReservation(resourceId,userId,reservationDate,startTime,endTime,notes,linkedEvent,groupId);
+           return null;
        }
-
+       Reservation reservationCollision = hasReservationCollision(resourceId,reservationDate);
+       if(reservationCollision != null){
+           return reservationCollision;
+       }
        if(notes == null) {
            notes = "Reserved by resource owner for this period of time";
        }
-       Reservation r = new Reservation(UUID.randomUUID(),resourceId,userId,reservationDate,startTime,endTime,notes,true);
-       reservationRepository.save(r);
 
-       return true;
+       resourceRepository.createReservation(UUID.randomUUID(),resourceId,userId,groupId,linkedEvent,reservationDate,
+               startTime,endTime,notes,true,null);
+
+       return null  ;
     }
 
     @Transactional
@@ -116,10 +135,14 @@ public class ResourceService
             return false;
         }
 
-        resourceRepository.deleteById(reservationId);
+        reservationRepository.deleteById(reservationId);
         return true;
     }
 
+    public Reservation hasReservationCollision(UUID resourceId,  LocalDate reservationDate){
+        Optional<Reservation> reservation = reservationRepository.findReservationByResourceIdAndDateAndApprovedTrue(resourceId,reservationDate);
+        return reservation.orElse(null);
+    }
 
 
 

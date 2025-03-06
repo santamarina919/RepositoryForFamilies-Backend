@@ -55,4 +55,7 @@ public interface ListsRepository extends CrudRepository<Lists, ListId> {
             "WHERE item_id = ?1",
             nativeQuery = true)
     void approveItem(UUID itemId);
+
+    <T> List<T> findByGroupId(UUID groupID, Class<T> type);
+
 }

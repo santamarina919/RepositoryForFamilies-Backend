@@ -16,5 +16,14 @@ public interface UserRepository extends JpaRepository<Users,String>
                     "INNER JOIN members m on users.email = m.user_id " +
                     "WHERE m.type = 'UNAUTHORIZED' AND m.group_id = ?1",
             nativeQuery = true )
-    List<UserEmailNameOnly> fetchUnapprovedMembers(UUID group_id);
+    <T> List<T> fetchUnapprovedMembers(UUID group_id, Class<T> clazz);
+
+
+    @Query(
+            value = "SELECT users.email, users.password, users.first_name, users.last_name " +
+                    "FROM users " +
+                    "INNER join members ON members.user_id = users.email " +
+                    "WHERE members.group_id = ?1",
+            nativeQuery = true )
+    <T> List<T> findUsersInGroup(UUID groupId, Class<T> clazz);
 }

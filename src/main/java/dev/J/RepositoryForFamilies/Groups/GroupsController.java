@@ -2,30 +2,30 @@ package dev.J.RepositoryForFamilies.Groups;
 
 import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
 import dev.J.RepositoryForFamilies.Users.UserEmailNameOnly;
-import dev.J.RepositoryForFamilies.Users.Users;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
+@CrossOrigin(origins = {"http://localhost:4200"}, allowCredentials = "true")
 public class GroupsController
 {
 
     private final GroupsService groupsService;
 
 
+    public record CreateGroupBody(String groupName){}
+
     @PostMapping("/groups/api/creategroup")
     public ResponseEntity<Void> createGroup(EmailPasswordAuthenticationToken auth, @RequestBody CreateGroupBody body){
 
-        groupsService.createGroup(body.getName(), auth.getName());
+        groupsService.createGroup(body.groupName(), auth.getName());
         return ResponseEntity
                 .ok()
                 .build();
@@ -37,7 +37,7 @@ public class GroupsController
     TODO: add notifications for group before user logged back on
     TODO: add whether user is apart of group or not
      */
-    @GetMapping("groups/api/listgroups")
+    @GetMapping("/groups/api/listgroups")
     public List<GroupCardDTO> listGroups(EmailPasswordAuthenticationToken auth){
         List<GroupCardDTO> groupList = groupsService.groupsWhereUserIsMember(auth.getEmail());
         return groupList;
@@ -46,7 +46,7 @@ public class GroupsController
 
     public record JoinRequestBody(String groupId){}
 
-    @PostMapping("groups/api/joingroup")
+    @PostMapping("/groups/api/joingroup")
     public ResponseEntity<String> joinGroup(EmailPasswordAuthenticationToken auth, @RequestBody JoinRequestBody body)
     {
         UUID groupId = UUID.fromString(body.groupId());
@@ -137,22 +137,11 @@ public class GroupsController
     }
 
 
-    @GetMapping("/groups/api/member/privileges")
-    public ResponseEntity<List<Privileges>> getPrivileges(EmailPasswordAuthenticationToken auth,
-                                                       @RequestParam("groupId") String groupIdStr) {
-        UUID groupId = UUID.fromString(groupIdStr);
-        Optional<Groups> group = groupsService.fetchGroup(groupId);
-        if(group.isEmpty()){
-            ResponseEntity.badRequest().body("{\"reason\" : \"group does not exist\"}");
-        }
-        UserType userType = groupsService.fetchMemberType(groupId, auth.getEmail());
-        //For now assume only two types admin and user
-        List<Privileges> privileges = new ArrayList<>(Privileges.getMemberPrivileges());
-        if(userType == UserType.ADMIN){
-            privileges.addAll(Privileges.getAdminPrivileges());
-        }
-        return ResponseEntity
-                .ok(privileges);
+    @GetMapping("/groups/api/member/glance")
+    public Object fetchHome(@RequestParam("groupId") String groupIdStr){
+        Object home = groupsService.fetchHome(UUID.fromString(groupIdStr));
+        System.out.println(home.toString());
+        return home;
     }
 
 

@@ -16,7 +16,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://192.168.50.237:3000","http://localhost:3000"},allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:4200","http://localhost:3000"},allowCredentials = "true")
 @RestController
 public class UserController
 {
@@ -60,7 +60,7 @@ public class UserController
                  body.getLastName().isBlank()) {
             return ResponseEntity
                     .badRequest()
-                    .body("reason : all fields must be filled");
+                    .body("{\"reason\" : \"all fields must be filled\"}");
         }
 
 
@@ -69,7 +69,7 @@ public class UserController
         userService.saveUser(newUser);
         return ResponseEntity
                 .ok()
-                .body("status : user created");
+                .body("{\"status\" : \"user created\"}");
     }
 
     @GetMapping("/authed/loggedin")

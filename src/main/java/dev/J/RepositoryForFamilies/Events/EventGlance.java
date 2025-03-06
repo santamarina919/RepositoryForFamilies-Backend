@@ -1,17 +1,23 @@
-package dev.J.RepositoryForFamilies.Schedules;
-
-import lombok.ToString;
+package dev.J.RepositoryForFamilies.Events;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalTime;
+import java.util.UUID;
 
-public interface ScheduleGlance {
+public interface EventGlance {
 
-        String getEventOwner();
+        UUID getEventId();
+
+        String getOwner();
 
         String getDescription();
 
-        LocalDate getEventDate();
+        LocalDate getDate();
 
+        LocalTime getStartTime();
+
+        LocalTime getEndTime();
+
+        String getName();
 
 }

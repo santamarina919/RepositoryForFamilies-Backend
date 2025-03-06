@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://192.168.50.237:3000","http://localhost:3000"},allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:4200"}, allowCredentials = "true")
 @RestController
 public class ListsController
 {

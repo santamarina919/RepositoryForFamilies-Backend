@@ -1,4 +1,17 @@
 package dev.J.RepositoryForFamilies.Lists;
 
-public class ListsGlance {
+import java.time.LocalDate;
+import java.util.UUID;
+
+public interface ListsGlance {
+
+    UUID getListId();
+
+    String getName();
+
+    String getItemDomain();
+
+    LocalDate getExpiration();
+
+
 }

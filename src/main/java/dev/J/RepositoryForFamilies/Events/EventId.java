@@ -1,4 +1,4 @@
-package dev.J.RepositoryForFamilies.Schedules;
+package dev.J.RepositoryForFamilies.Events;
 
 import java.util.UUID;
 
