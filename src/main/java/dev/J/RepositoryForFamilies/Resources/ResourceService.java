@@ -2,16 +2,16 @@ package dev.J.RepositoryForFamilies.Resources;
 
 import dev.J.RepositoryForFamilies.Groups.GroupsService;
 import dev.J.RepositoryForFamilies.Groups.UserType;
+import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -24,8 +24,29 @@ public class ResourceService
 
     private final GroupsService groupsService;
 
-    public <T> List<T> allResoucesInGroup(UUID groupId, Class<T> clazz) {
-        return resourceRepository.fetchAllByGroupId(groupId,clazz);
+    public List<Resource> allResoucesInGroup(UUID groupId) {
+        return resourceRepository.fetchAllByGroupId(groupId);
+    }
+
+
+    public List<ResourceAndReservations> allResourcesAndReservations(EmailPasswordAuthenticationToken auth, UUID groupId){
+        List<Resource> resources = allResoucesInGroup(groupId);
+        List<ResourceAndReservations> allEntities = new ArrayList<>();
+        for(Resource  r : resources){
+            List<ReservationAndEventPreview> reservations = reservationRepository.findAllByResourceId(r.getResourceId());
+            List<ResourceAndReservations.ReservationDTO> reservationDTOS = reservations.stream()
+                    .map(preview -> {
+                        if(r.getOwner().equals(auth.getEmail())){
+                            return ResourceAndReservations.ReservationDTO.withWriteAccess(preview);
+                        }
+                        else{
+                            return ResourceAndReservations.ReservationDTO.withoutWriteAccess(preview);
+                        }
+                    })
+                    .toList();
+            allEntities.add(new ResourceAndReservations(r,reservationDTOS));
+        }
+        return allEntities;
     }
 
     public List<Resource> allResourcesFrom(String ownerId){
@@ -131,7 +152,7 @@ public class ResourceService
     public boolean deleteReservation(UUID reservationId, UUID resourceId,UUID groupId, String userId){
         UserType type = groupsService.fetchMemberType(groupId,userId);
         Reservation r = reservationRepository.findById(reservationId).orElseThrow();
-        if(type != UserType.ADMIN && !r.getUserId().equals(userId)){
+        if(type != UserType.ADMIN && !r.getReservationOwner().getEmail().equals(userId)){
             return false;
         }
 
@@ -146,6 +167,40 @@ public class ResourceService
 
 
 
+    public List<Resource> fetchN(int n) {
+        return resourceRepository.fetchN(n);
+    }
 
+    //A resource is defined as avialable for a specific block of time if that block of time is greater than 4 hours
+    //starting at now check the next reservation if the difference greater than 4 hours ? then it is available
+    public AvailableBlock nextAvailability(Resource r) {
+        List<Reservation> reservations = reservationRepository.reservationsFor(r.getResourceId());
+        if(reservations.isEmpty()){
+            return AvailableBlock.OPEN_AVAILABILITY;
+        }
+        LocalDateTime blockStart = LocalDate.now().atStartOfDay();
+        for(Reservation reservation : reservations){
+            LocalDateTime  blockEnd = reservation.getDate().atStartOfDay();
 
+            Duration duration = Duration.between(blockStart,blockEnd);
+            if(duration.toDays() >= 1){
+                return new AvailableBlock(blockStart,blockEnd);
+            }
+            else if(duration.toDays() < 0){
+                continue;
+            }
+
+            if(reservation.getStartTime() == null){
+                blockStart = blockEnd;
+                continue;
+            }
+
+            blockEnd = LocalTime.from(reservation.getStartTime()).atDate(reservation.getDate());
+            if(Duration.between(blockStart,blockEnd).toHours() > 4){
+                return new AvailableBlock(blockStart,blockEnd);
+            }
+            blockStart = blockEnd;
+        }
+        return null;
+    }
 }

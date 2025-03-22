@@ -37,10 +37,10 @@ import java.util.UUID;
         }
 )
 public class Event {
-    @Id @GeneratedValue(strategy = GenerationType.UUID)
+    @Id @Column(name = "event_id") @GeneratedValue(strategy = GenerationType.UUID)
     private UUID eventId;
 
-    @Id
+    @Id @Column(name = "group_id")
     private UUID groupId;
 
     private String owner;

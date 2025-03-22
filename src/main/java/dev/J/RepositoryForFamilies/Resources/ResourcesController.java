@@ -7,12 +7,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @RequiredArgsConstructor
 @CrossOrigin(origins = {"http://localhost:4200"}, allowCredentials = "true")
@@ -25,9 +21,8 @@ public class ResourcesController {
 
 
     @GetMapping("/resources/api/member/all")
-    public List<ResourceDTO> listAllResources(@RequestParam("groupId") String groupIdStr) {
-        UUID groupId = UUID.fromString(groupIdStr);
-        return resourceService.allResoucesInGroup(groupId,ResourceDTO.class);
+    public List<ResourceAndReservations> listAllResources(EmailPasswordAuthenticationToken auth,@RequestParam UUID groupId) {
+        return resourceService.allResourcesAndReservations(auth,groupId);
     }
 
     public record CreateResourceBody(String resourceName, String description,String type){}
@@ -60,12 +55,12 @@ public class ResourcesController {
         resourceService.reserveResource(resourceId, auth.getEmail(),body.date(),body.startTime(),body.endTime(),body.notes(),body.linkedEvent(),groupId);
     }
 
-    public record RejectionBody(UUID resourceId){}
+    public record RejectionBody(UUID reservationId, UUID resourceId){}
 
     @PostMapping("resources/api/member/rejectreservation")
     public void rejectReservation(@RequestParam(name = "groupId") String groupIdStr, EmailPasswordAuthenticationToken auth,
                                   @RequestBody RejectionBody body,String rejectionNote){
-        resourceService.denyReservation(UUID.fromString(groupIdStr),body.resourceId(),auth.getEmail(),rejectionNote);
+        resourceService.denyReservation(body.reservationId(),body.resourceId(),auth.getEmail(),rejectionNote);
     }
 
     public record ApprovalBody(UUID reservationId, UUID resourceId){}
@@ -83,6 +78,20 @@ public class ResourcesController {
     public void deleteReservation(@RequestParam(name = "groupId") UUID groupId, EmailPasswordAuthenticationToken auth,
                                   @RequestBody DeleteReservationBody body){
         resourceService.deleteReservation(body.reservationId(),null,groupId,auth.getEmail());
+    }
+
+    //pick 3 random resources
+    //with those 3 return two items for each resource
+    @GetMapping("resources/api/member/availability")
+    public Map<String,AvailableBlock> availability(@RequestParam UUID groupId, EmailPasswordAuthenticationToken auth, @RequestParam int n){
+        System.out.println("we are in controller");
+        List<Resource> resources = resourceService.fetchN(n);
+        Map<String ,AvailableBlock> availabilityMap = new HashMap<>();
+        for(Resource r : resources){
+            AvailableBlock block = resourceService.nextAvailability(r);
+            availabilityMap.put(r.getName(),block);
+        }
+        return availabilityMap;
     }
 
 }

@@ -44,7 +44,7 @@ public interface ResourceRepository extends CrudRepository<Resource, UUID> {
             "INNER JOIN members ON members.user_id = resource.owner " +
             "WHERE members.group_id = ?1",
             nativeQuery = true)
-    <T> List<T> fetchAllByGroupId(UUID groupId, Class<T> clazz);
+    List<Resource> fetchAllByGroupId(UUID groupId);
 
     @Modifying
     @NativeQuery(value = "INSERT INTO resource (resource_id,owner,name,description,type) VALUES (?1,?2,?3,?4,?5)")
@@ -59,4 +59,10 @@ public interface ResourceRepository extends CrudRepository<Resource, UUID> {
     void createReservation(UUID reservationId, UUID resourceId, String userId, UUID groupId,
                            UUID linkedEvent, LocalDate date, LocalTime startTime, LocalTime endTime, String notes,
                            boolean approved, String rejectionNote);
+
+    @NativeQuery(value =
+            "SELECT * " +
+            "FROM resource " +
+            "LIMIT ?1")
+    List<Resource> fetchN(int n);
 }
