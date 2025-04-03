@@ -40,8 +40,8 @@ public class ResourcesController {
      */
     //todo fix
     @GetMapping("/resources/api/member/all")
-    public List<Void> listAllResources(EmailPasswordAuthenticationToken auth,@RequestParam UUID groupId) {
-        return Collections.emptyList();
+    public List<Resource> listAllResources(EmailPasswordAuthenticationToken auth,@RequestParam UUID groupId) {
+        return resourceService.allResourcesInGroup(groupId);
     }
 
     public record CreateResourceBody(String resourceName, String description,String type){}

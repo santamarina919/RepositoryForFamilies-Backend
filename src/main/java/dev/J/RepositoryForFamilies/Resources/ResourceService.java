@@ -26,35 +26,8 @@ public class ResourceService
 
     private final GroupsService groupsService;
 
-    public List<Resource> allResoucesInGroup(UUID groupId) {
+    public List<Resource> allResourcesInGroup(UUID groupId) {
         return resourceRepository.fetchAllByGroupId(groupId);
-    }
-
-
-    //TODO: fix
-    public List<Void> allResourcesAndReservations(EmailPasswordAuthenticationToken auth, UUID groupId){
-//        List<Resource> resources = allResoucesInGroup(groupId);
-//        List<ResourceAndReservations> allEntities = new ArrayList<>();
-//        for(Resource  r : resources){
-//            List<ReservationAndEventPreview> reservations = reservationRepository.findAllByResourceId(r.getResourceId());
-//            List<ResourceAndReservations.ReservationDTO> reservationDTOS = reservations.stream()
-//                    .map(preview -> {
-//                        if(r.getOwner().equals(auth.getEmail())){
-//                            return ResourceAndReservations.ReservationDTO.withWriteAccess(preview);
-//                        }
-//                        else{
-//                            return ResourceAndReservations.ReservationDTO.withoutWriteAccess(preview);
-//                        }
-//                    })
-//                    .toList();
-//            allEntities.add(new ResourceAndReservations(r,reservationDTOS));
-//        }
-//        return allEntities;
-        return null;
-    }
-
-    public List<Resource> allResourcesFrom(String ownerId){
-        return resourceRepository.findAllByOwner(ownerId);
     }
 
 
@@ -169,6 +142,12 @@ public class ResourceService
     }
 
 
+    /**
+     * Returns n resources and the closes event for each of them
+     * @param groupId
+     * @param numOfResources
+     * @return
+     */
     public List<ResourceAvailability> glanceResources(UUID groupId, int numOfResources) {
         List<Resource> resourceList = resourceRepository.fetchNByGroupId(groupId,numOfResources);
         List<ResourceAvailability> availabilityList = new ArrayList<>();

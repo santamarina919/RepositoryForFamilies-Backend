@@ -139,10 +139,8 @@ public class GroupsController
 
 
     @GetMapping("/groups/api/member/glance")
-    public Object fetchHome(@RequestParam("groupId") String groupIdStr){
-        Object home = groupsService.fetchGroupDetails(UUID.fromString(groupIdStr));
-        System.out.println(home.toString());
-        return home;
+    public GroupsService.UserHomeDTO fetchHome(@RequestParam("groupId") String groupIdStr){
+        return groupsService.fetchGroupDetails(UUID.fromString(groupIdStr));
     }
 
 
