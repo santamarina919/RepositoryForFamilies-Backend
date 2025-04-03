@@ -54,4 +54,8 @@ public class EventService {
         }
         return events;
     }
+
+    public <T> List<T> allEventsFromGroup(UUID groupId, Class<T> clazz){
+        return eventRepository.findAllByGroupId(groupId,clazz);
+    }
 }

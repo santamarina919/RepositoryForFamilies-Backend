@@ -26,6 +26,11 @@ public class EventController {
                             String name) {}
 
 
+    @GetMapping("events/api/member/glance")
+    public List<EventGlance> getEventGlance(@RequestParam UUID groupId){
+        return eventService.allEventsFromGroup(groupId,EventGlance.class);
+    }
+
     @GetMapping("/events/api/member/allevents")
     public List<EventDTO> allEvents(EmailPasswordAuthenticationToken auth, @RequestParam UUID groupId) {
         return eventService.allEvents(groupId, auth.getEmail());

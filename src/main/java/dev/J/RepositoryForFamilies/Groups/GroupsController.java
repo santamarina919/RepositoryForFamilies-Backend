@@ -115,6 +115,7 @@ public class GroupsController
                 .build();
     }
     public record RejectBody(String email){}
+
     @PostMapping("groups/api/admin/rejectmember")
     public ResponseEntity<String> rejectUser(EmailPasswordAuthenticationToken auth,
                                              @RequestBody RejectBody body,
@@ -139,7 +140,7 @@ public class GroupsController
 
     @GetMapping("/groups/api/member/glance")
     public Object fetchHome(@RequestParam("groupId") String groupIdStr){
-        Object home = groupsService.fetchHome(UUID.fromString(groupIdStr));
+        Object home = groupsService.fetchGroupDetails(UUID.fromString(groupIdStr));
         System.out.println(home.toString());
         return home;
     }

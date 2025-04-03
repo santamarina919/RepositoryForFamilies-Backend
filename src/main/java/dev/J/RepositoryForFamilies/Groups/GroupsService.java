@@ -1,8 +1,6 @@
 package dev.J.RepositoryForFamilies.Groups;
 
 import dev.J.RepositoryForFamilies.Events.EventRepository;
-import dev.J.RepositoryForFamilies.Events.EventGlance;
-import dev.J.RepositoryForFamilies.Lists.ListsGlance;
 import dev.J.RepositoryForFamilies.Lists.ListsRepository;
 import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
 import dev.J.RepositoryForFamilies.Users.UserEmailNameOnly;
@@ -10,11 +8,9 @@ import dev.J.RepositoryForFamilies.Users.UserInfo;
 import dev.J.RepositoryForFamilies.Users.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.swing.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -89,41 +85,30 @@ public class GroupsService
         return groupsRepo.isMember(groupId,email);
     }
 
-    public UserHomeDTO fetchHome(UUID groupId) {
-        List<EventGlance> events = eventRepo.findAllByGroupId(groupId, EventGlance.class);
+    public interface UserHomeDTO {
+
+        GroupDetails getGroupDetails();
+
+        //a list of users for reference for each glance object
+        List<UserInfo> getUsers();
+
+    }
+
+    public UserHomeDTO fetchGroupDetails(UUID groupId) {
+
         List<UserInfo> userInfos = userRepo.findUsersInGroup(groupId, UserInfo.class);
         GroupDetails groupDetails = groupsRepo.findById(groupId,GroupDetails.class);
-        EmailPasswordAuthenticationToken auth = (EmailPasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+
             return new UserHomeDTO(){
                 @Override
                 public List<UserInfo> getUsers() {
                     return userInfos;
                 }
 
-                @Override
-                public List<EventGlance> getEventGlances() {
-                    return events;
-                }
 
                 @Override
                 public GroupDetails getGroupDetails() {
                     return groupDetails;
-                }
-
-                @Override
-                public List<ListsGlance> getShoppingLists(){
-                    return  listsRepo.findByGroupId(groupId,ListsGlance.class);
-                }
-
-                @Override
-                public Integer getUsersWaitingApproval(){
-                    UserType type = groupsRepo.fetchMemberType(groupId,auth.getEmail());
-                    if(type == UserType.ADMIN){
-                        return fetchUnapprovedMembers(groupId).size();
-                    }
-                    else {
-                        return null;
-                    }
                 }
             };
     }
