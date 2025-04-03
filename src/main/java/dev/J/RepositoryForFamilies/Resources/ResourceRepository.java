@@ -1,13 +1,11 @@
 package dev.J.RepositoryForFamilies.Resources;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import javax.management.ValueExp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -46,6 +44,15 @@ public interface ResourceRepository extends CrudRepository<Resource, UUID> {
             nativeQuery = true)
     List<Resource> fetchAllByGroupId(UUID groupId);
 
+    @Query( value =
+            "SELECT resource.resource_id, resource.owner, resource.name,resource.description, resource.type " +
+                    "FROM resource " +
+                    "INNER JOIN members ON members.user_id = resource.owner " +
+                    "WHERE members.group_id = ?1 " +
+                    "LIMIT ?2",
+            nativeQuery = true)
+    List<Resource> fetchNByGroupId(UUID groupId,int n);
+
     @Modifying
     @NativeQuery(value = "INSERT INTO resource (resource_id,owner,name,description,type) VALUES (?1,?2,?3,?4,?5)")
     void createResource(UUID resourceId, String owner, String name, String description,String type);
@@ -60,9 +67,6 @@ public interface ResourceRepository extends CrudRepository<Resource, UUID> {
                            UUID linkedEvent, LocalDate date, LocalTime startTime, LocalTime endTime, String notes,
                            boolean approved, String rejectionNote);
 
-    @NativeQuery(value =
-            "SELECT * " +
-            "FROM resource " +
-            "LIMIT ?1")
-    List<Resource> fetchN(int n);
+
+
 }

@@ -1,10 +1,14 @@
 package dev.J.RepositoryForFamilies.Resources;
 
+import dev.J.RepositoryForFamilies.Events.Event;
 import dev.J.RepositoryForFamilies.Groups.GroupsService;
 import dev.J.RepositoryForFamilies.Groups.UserType;
 import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.annotations.CollectionId;
+import org.springframework.cglib.core.Local;
+import org.springframework.data.convert.DtoInstantiatingConverter;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -20,8 +24,6 @@ public class ResourceService
 
     private final ResourceRepository resourceRepository;
 
-    private final ReservationRepository reservationRepository;
-
     private final GroupsService groupsService;
 
     public List<Resource> allResoucesInGroup(UUID groupId) {
@@ -29,24 +31,26 @@ public class ResourceService
     }
 
 
-    public List<ResourceAndReservations> allResourcesAndReservations(EmailPasswordAuthenticationToken auth, UUID groupId){
-        List<Resource> resources = allResoucesInGroup(groupId);
-        List<ResourceAndReservations> allEntities = new ArrayList<>();
-        for(Resource  r : resources){
-            List<ReservationAndEventPreview> reservations = reservationRepository.findAllByResourceId(r.getResourceId());
-            List<ResourceAndReservations.ReservationDTO> reservationDTOS = reservations.stream()
-                    .map(preview -> {
-                        if(r.getOwner().equals(auth.getEmail())){
-                            return ResourceAndReservations.ReservationDTO.withWriteAccess(preview);
-                        }
-                        else{
-                            return ResourceAndReservations.ReservationDTO.withoutWriteAccess(preview);
-                        }
-                    })
-                    .toList();
-            allEntities.add(new ResourceAndReservations(r,reservationDTOS));
-        }
-        return allEntities;
+    //TODO: fix
+    public List<Void> allResourcesAndReservations(EmailPasswordAuthenticationToken auth, UUID groupId){
+//        List<Resource> resources = allResoucesInGroup(groupId);
+//        List<ResourceAndReservations> allEntities = new ArrayList<>();
+//        for(Resource  r : resources){
+//            List<ReservationAndEventPreview> reservations = reservationRepository.findAllByResourceId(r.getResourceId());
+//            List<ResourceAndReservations.ReservationDTO> reservationDTOS = reservations.stream()
+//                    .map(preview -> {
+//                        if(r.getOwner().equals(auth.getEmail())){
+//                            return ResourceAndReservations.ReservationDTO.withWriteAccess(preview);
+//                        }
+//                        else{
+//                            return ResourceAndReservations.ReservationDTO.withoutWriteAccess(preview);
+//                        }
+//                    })
+//                    .toList();
+//            allEntities.add(new ResourceAndReservations(r,reservationDTOS));
+//        }
+//        return allEntities;
+        return null;
     }
 
     public List<Resource> allResourcesFrom(String ownerId){
@@ -121,7 +125,7 @@ public class ResourceService
 
 
     @Transactional
-    public Reservation reserveResource(UUID resourceId,
+    public Object reserveResource(UUID resourceId,
                                    String userId,
                                    LocalDate reservationDate,
                                    LocalTime startTime,
@@ -134,7 +138,7 @@ public class ResourceService
             requestReservation(resourceId,userId,reservationDate,startTime,endTime,notes,linkedEvent,groupId);
            return null;
        }
-       Reservation reservationCollision = hasReservationCollision(resourceId,reservationDate);
+       Object reservationCollision = hasReservationCollision(resourceId,reservationDate);
        if(reservationCollision != null){
            return reservationCollision;
        }
@@ -150,57 +154,61 @@ public class ResourceService
 
     @Transactional
     public boolean deleteReservation(UUID reservationId, UUID resourceId,UUID groupId, String userId){
-        UserType type = groupsService.fetchMemberType(groupId,userId);
-        Reservation r = reservationRepository.findById(reservationId).orElseThrow();
-        if(type != UserType.ADMIN && !r.getReservationOwner().getEmail().equals(userId)){
-            return false;
-        }
-
-        reservationRepository.deleteById(reservationId);
+//        UserType type = groupsService.fetchMemberType(groupId,userId);
+//        Reservation r = reservationRepository.findById(reservationId).orElseThrow();
+//        if(type != UserType.ADMIN && !r.getReservationOwner().getEmail().equals(userId)){
+//            return false;
+//        }
+//
+//        reservationRepository.deleteById(reservationId);
         return true;
     }
 
-    public Reservation hasReservationCollision(UUID resourceId,  LocalDate reservationDate){
-        Optional<Reservation> reservation = reservationRepository.findReservationByResourceIdAndDateAndApprovedTrue(resourceId,reservationDate);
-        return reservation.orElse(null);
-    }
-
-
-
-    public List<Resource> fetchN(int n) {
-        return resourceRepository.fetchN(n);
-    }
-
-    //A resource is defined as avialable for a specific block of time if that block of time is greater than 4 hours
-    //starting at now check the next reservation if the difference greater than 4 hours ? then it is available
-    public AvailableBlock nextAvailability(Resource r) {
-        List<Reservation> reservations = reservationRepository.reservationsFor(r.getResourceId());
-        if(reservations.isEmpty()){
-            return AvailableBlock.OPEN_AVAILABILITY;
-        }
-        LocalDateTime blockStart = LocalDate.now().atStartOfDay();
-        for(Reservation reservation : reservations){
-            LocalDateTime  blockEnd = reservation.getDate().atStartOfDay();
-
-            Duration duration = Duration.between(blockStart,blockEnd);
-            if(duration.toDays() >= 1){
-                return new AvailableBlock(blockStart,blockEnd);
-            }
-            else if(duration.toDays() < 0){
-                continue;
-            }
-
-            if(reservation.getStartTime() == null){
-                blockStart = blockEnd;
-                continue;
-            }
-
-            blockEnd = LocalTime.from(reservation.getStartTime()).atDate(reservation.getDate());
-            if(Duration.between(blockStart,blockEnd).toHours() > 4){
-                return new AvailableBlock(blockStart,blockEnd);
-            }
-            blockStart = blockEnd;
-        }
+    public Object hasReservationCollision(UUID resourceId,  LocalDate reservationDate){
         return null;
+    }
+
+
+    public List<ResourceAvailability> glanceResources(UUID groupId, int numOfResources) {
+        List<Resource> resourceList = resourceRepository.fetchNByGroupId(groupId,numOfResources);
+        List<ResourceAvailability> availabilityList = new ArrayList<>();
+        for(Resource resource : resourceList){
+            List<Event> events = resource.getReservations();
+            if(events.isEmpty()){
+                availabilityList.add(
+                        new ResourceAvailability(resource, ResourceAvailability.Availability.AVAILABLE,null)
+                );
+                return availabilityList;
+            }
+
+            Collections.sort(events);
+            //If the current time is in the middle of an event that reserved the resource then
+            //it is unavailable otherwise it is available
+            Event firstEvent = events.getFirst();
+
+            LocalDateTime now = LocalDateTime.now();
+
+            LocalTime startTime = firstEvent.getStartTime();
+            LocalDateTime eventStart = LocalDateTime.of(firstEvent.getDate(),startTime == null ? LocalTime.MIN : startTime);
+
+            if(now.isBefore(eventStart)){
+                //TODO available
+                //TODO until event start
+                availabilityList.add(
+                        new ResourceAvailability(resource, ResourceAvailability.Availability.AVAILABLE,eventStart)
+                );
+            }
+            else{
+                LocalTime endTime = firstEvent.getEndTime();
+                LocalDateTime eventEnd =
+                        LocalDateTime.of(firstEvent.getDate(),endTime == null ? LocalTime.MAX : endTime);
+                availabilityList.add(
+                        new ResourceAvailability(resource, ResourceAvailability.Availability.UNAVAILABLE,null)
+                );
+            }
+
+
+        }
+        return availabilityList;
     }
 }

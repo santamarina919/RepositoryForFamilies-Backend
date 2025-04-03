@@ -18,19 +18,36 @@ public class ResourcesController {
     private final ResourceService resourceService;
 
 
+    private static final int NUM_OF_RESOURCES = 3;
+    /**
+     * Endpoint grabs n random resources and gives their current status.
+     * Two statuses possible -> Available and Unavailable
+     * Both have an attribute 'status end' which denotes when that status will change to the other
+     * @return
+     */
+    @GetMapping("/resources/api/member/glance")
+    private List<ResourceAvailability> resourceGlance(@RequestParam UUID groupId){
+        return resourceService.glanceResources(groupId,NUM_OF_RESOURCES);
+    }
 
 
+    /**
+     * Endpoint returns all the resources with associated reservations
+     * Can be thought of as a map that maps a Resource -> List<Reservations>
+     * @param auth
+     * @param groupId
+     * @return
+     */
+    //todo fix
     @GetMapping("/resources/api/member/all")
-    public List<ResourceAndReservations> listAllResources(EmailPasswordAuthenticationToken auth,@RequestParam UUID groupId) {
-        return resourceService.allResourcesAndReservations(auth,groupId);
+    public List<Void> listAllResources(EmailPasswordAuthenticationToken auth,@RequestParam UUID groupId) {
+        return Collections.emptyList();
     }
 
     public record CreateResourceBody(String resourceName, String description,String type){}
 
-
     @PostMapping("/resources/api/member/createresource")
-    public void createResource(@RequestParam("groupId") String groupIdStr, EmailPasswordAuthenticationToken auth, @RequestBody CreateResourceBody body){
-        UUID groupId = UUID.fromString(groupIdStr);
+    public void createResource(@RequestParam UUID groupId, EmailPasswordAuthenticationToken auth, @RequestBody CreateResourceBody body){
         resourceService.createResource(auth.getEmail(),body.resourceName(),body.description(), body.type().strip());
     }
 
@@ -80,18 +97,5 @@ public class ResourcesController {
         resourceService.deleteReservation(body.reservationId(),null,groupId,auth.getEmail());
     }
 
-    //pick 3 random resources
-    //with those 3 return two items for each resource
-    @GetMapping("resources/api/member/availability")
-    public Map<String,AvailableBlock> availability(@RequestParam UUID groupId, EmailPasswordAuthenticationToken auth, @RequestParam int n){
-        System.out.println("we are in controller");
-        List<Resource> resources = resourceService.fetchN(n);
-        Map<String ,AvailableBlock> availabilityMap = new HashMap<>();
-        for(Resource r : resources){
-            AvailableBlock block = resourceService.nextAvailability(r);
-            availabilityMap.put(r.getName(),block);
-        }
-        return availabilityMap;
-    }
 
 }

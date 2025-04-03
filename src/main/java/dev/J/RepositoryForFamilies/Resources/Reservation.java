@@ -1,55 +1,32 @@
 package dev.J.RepositoryForFamilies.Resources;
 
-import dev.J.RepositoryForFamilies.Events.Event;
-import dev.J.RepositoryForFamilies.Users.Users;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import jakarta.annotation.Nullable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 
-import javax.naming.Name;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.UUID;
 
-
-//A reservation for a resource can only be approved by the owner of said resource
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@IdClass(Reservation.ReservationId.class)
 @Entity
-@ToString
 public class Reservation {
+    static record ReservationId (UUID eventId, UUID groupId, UUID resourceId){}
 
-    @Id @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID reservationId;
-
+    @Id
+    @Column(name = "event_id")
+    private UUID eventId;
+    @Id
+    @Column(name = "group_id")
+    private UUID groupId;
+    @Id
+    @Column(name = "resource_id")
     private UUID resourceId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_Id",referencedColumnName = "email")
-    private Users reservationOwner;
+    @Nullable
+    private Boolean approved;
 
-    @ManyToOne
-    @JoinColumns({
-            @JoinColumn(name = "linked_event",referencedColumnName = "event_id"),
-            @JoinColumn(name = "group_id",referencedColumnName = "group_id")
-    })
-    private Event linkedEvent;
-
-    private LocalDate date;
-
-    private LocalTime startTime;
-
-    private LocalTime endTime;
-
-    private String notes;
-
-    private boolean approved;
-
+    @Nullable
+    @Column(name = "rejection_note")
     private String rejectionNote;
-
-
-
 }
