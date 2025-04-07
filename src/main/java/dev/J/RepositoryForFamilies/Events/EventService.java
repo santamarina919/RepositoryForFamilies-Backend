@@ -1,13 +1,9 @@
 package dev.J.RepositoryForFamilies.Events;
 
 import dev.J.RepositoryForFamilies.Groups.GroupsService;
-import dev.J.RepositoryForFamilies.Groups.UserType;
-import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
+import dev.J.RepositoryForFamilies.Groups.MemberType;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.springframework.boot.actuate.endpoint.SecurityContext;
-import org.springframework.data.convert.DtoInstantiatingConverter;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -33,8 +29,8 @@ public class EventService {
     public boolean deleteEvent(String userId,UUID groupId, EventController.DeleteEventBody body){
         UUID eventId = UUID.fromString(body.eventId());
         Event e = eventRepository.findByEventId(eventId).orElseThrow();
-        UserType type = userService.fetchMemberType(groupId,userId);
-        if(!e.getOwner().equals(userId) && type != UserType.ADMIN){
+        MemberType type = userService.fetchMemberType(groupId,userId);
+        if(!e.getOwner().equals(userId) && type != MemberType.ADMIN){
             return false;
         }
         eventRepository.delete(e);

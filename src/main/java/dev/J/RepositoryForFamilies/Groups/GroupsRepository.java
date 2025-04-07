@@ -1,13 +1,11 @@
 package dev.J.RepositoryForFamilies.Groups;
 
-import dev.J.RepositoryForFamilies.Users.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public interface GroupsRepository extends JpaRepository<Groups,UUID>
@@ -47,7 +45,7 @@ public interface GroupsRepository extends JpaRepository<Groups,UUID>
                     "WHERE user_id = ?2 AND " +
                     "group_id = ?1",
     nativeQuery = true)
-    UserType fetchMemberType(UUID group_id, String member_id);
+    MemberType fetchMemberType(UUID group_id, String member_id);
 
     //TODO ensure this method works
     @Modifying
@@ -66,5 +64,16 @@ public interface GroupsRepository extends JpaRepository<Groups,UUID>
     boolean isMember(UUID groupId, String email);
 
     <T> T findById(UUID id,Class<T> clazz);
+
+    @Query(
+            value = "SELECT count(*) " +
+                    "FROM members " +
+                    "WHERE group_id = ?1 AND " +
+                    "members.type = 'UNAUTHORIZED'",
+            nativeQuery = true
+    )
+    Integer fetchUnapprovedCount(UUID groupId);
+
+
 
 }

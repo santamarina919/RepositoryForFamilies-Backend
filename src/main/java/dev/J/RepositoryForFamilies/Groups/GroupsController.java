@@ -3,13 +3,12 @@ package dev.J.RepositoryForFamilies.Groups;
 import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
 import dev.J.RepositoryForFamilies.Users.UserEmailNameOnly;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -65,45 +64,18 @@ public class GroupsController
                 .build();
     }
 
-    @GetMapping("groups/api/admin/unapprovedmembers")
-    public ResponseEntity<List<UserEmailNameOnly>> fetchUnapprovedMembers(EmailPasswordAuthenticationToken auth, @RequestParam("groupId") String rawGroupId){
-        UUID groupId = UUID.fromString(rawGroupId);
-        Optional<Groups> group = groupsService.fetchGroup(groupId);
-        if(group.isEmpty()){
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
-
-        if(groupsService.fetchMemberType(groupId, auth.getEmail()) != UserType.ADMIN){
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .build();
-        }
-
-        List<UserEmailNameOnly> unapprovedMembers = groupsService.fetchUnapprovedMembers(groupId);
-
-        return ResponseEntity
-                .ok(unapprovedMembers);
+    @PostMapping("/groups/api/admin/removemember")
+    public void removeMember(@RequestParam UUID groupId, @RequestParam String email){
+        groupsService.removeMember(groupId,email);
     }
 
 
-    public record ApproveRequestBody(String email, UserType approvedLevel){}
-
     @PostMapping("groups/api/admin/approvemember")
     public ResponseEntity<String> approveMember(EmailPasswordAuthenticationToken auth,
-                                              @RequestBody ApproveRequestBody body,
-                                              @RequestParam("groupId") String groupIdStr){
-        UUID groupId = UUID.fromString(groupIdStr);
-        Optional<Groups> group = groupsService.fetchGroup(groupId);
-        if(group.isEmpty()){
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body("reason : group not found");
-        }
+                                                @RequestParam UUID groupId,
+                                                @RequestParam String email){
 
-
-        if (!groupsService.upgradeUserType(group.get().getId(), body.email(),body.approvedLevel())) {
+        if (!groupsService.upgradeUserType(groupId, email,MemberType.CITIZEN)) {
             return ResponseEntity
                     .badRequest()
                     .body("reason : cannot downgrade a user while when using upgrade function");
@@ -114,20 +86,13 @@ public class GroupsController
                 .ok()
                 .build();
     }
-    public record RejectBody(String email){}
 
     @PostMapping("groups/api/admin/rejectmember")
     public ResponseEntity<String> rejectUser(EmailPasswordAuthenticationToken auth,
-                                             @RequestBody RejectBody body,
-                                             @RequestParam("groupId")  String groupIdStr){
+                                             @RequestParam String email,
+                                             @RequestParam UUID groupId){
 
-        UUID groupId = UUID.fromString(groupIdStr);
-        Optional<Groups> group = groupsService.fetchGroup(groupId);
-        if(group.isEmpty()){
-            return ResponseEntity.badRequest().body("reason : group does not exist");
-        }
-
-        if(!groupsService.rejectUser(groupId,body.email())){
+        if(!groupsService.rejectUser(groupId,email)){
             return ResponseEntity.badRequest().body("reason : user is not waiting for approval or does not exist");
         }
 
@@ -137,12 +102,31 @@ public class GroupsController
                 .build();
     }
 
-
-    @GetMapping("/groups/api/member/glance")
-    public GroupsService.UserHomeDTO fetchHome(@RequestParam("groupId") String groupIdStr){
-        return groupsService.fetchGroupDetails(UUID.fromString(groupIdStr));
+    @PostMapping("/groups/api/admin/adminmember")
+    public ResponseEntity<Void> adminMember(@RequestParam String email, @RequestParam UUID groupId){
+        if(!groupsService.upgradeUserType(groupId,email,MemberType.ADMIN)){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok().build();
     }
 
+
+    @GetMapping("/groups/api/member/glance")
+    public GroupsService.UserHomeDTO fetchHome(@RequestParam("groupId") String groupIdStr, EmailPasswordAuthenticationToken auth){
+        return groupsService.fetchGroupDetails(UUID.fromString(groupIdStr),auth);
+    }
+
+
+    @GetMapping("groups/api/admin/unapproved")
+    public Integer fetchUnapprovedCount(@RequestParam UUID groupId){
+        return groupsService.unapprovedCount(groupId);
+    }
+
+    @GetMapping("groups/api/admin/members")
+    public List<Member> fetchMembers(@RequestParam UUID groupId){
+        return groupsService.fetchMembers(groupId);
+
+    }
 
 
 

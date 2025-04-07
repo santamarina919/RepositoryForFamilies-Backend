@@ -19,4 +19,7 @@ public class Groups
     private String name;
 
     private String owner;
+
+
+
 }

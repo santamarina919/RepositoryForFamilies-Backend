@@ -2,16 +2,11 @@ package dev.J.RepositoryForFamilies.Resources;
 
 import dev.J.RepositoryForFamilies.Events.Event;
 import dev.J.RepositoryForFamilies.Groups.GroupsService;
-import dev.J.RepositoryForFamilies.Groups.UserType;
-import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
+import dev.J.RepositoryForFamilies.Groups.MemberType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.CollectionId;
-import org.springframework.cglib.core.Local;
-import org.springframework.data.convert.DtoInstantiatingConverter;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -41,9 +36,9 @@ public class ResourceService
 
     @Transactional
     public boolean deleteResource(UUID groupId, String userId, UUID resourceId){
-        UserType type = groupsService.fetchMemberType(groupId,userId);
+        MemberType type = groupsService.fetchMemberType(groupId,userId);
         Resource resource = resourceRepository.findResourceByResourceId(resourceId).orElseThrow();
-        if(type != UserType.ADMIN && !resource.getOwner().equals(userId)){
+        if(type != MemberType.ADMIN && !resource.getOwner().equals(userId)){
             return false;
         }
 

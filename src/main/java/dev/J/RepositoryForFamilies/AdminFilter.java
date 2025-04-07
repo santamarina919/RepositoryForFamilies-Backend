@@ -1,14 +1,13 @@
 package dev.J.RepositoryForFamilies;
 
 import dev.J.RepositoryForFamilies.Groups.GroupsRepository;
-import dev.J.RepositoryForFamilies.Groups.UserType;
+import dev.J.RepositoryForFamilies.Groups.MemberType;
 import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -30,8 +29,8 @@ public class AdminFilter extends OncePerRequestFilter {
             EmailPasswordAuthenticationToken auth = (EmailPasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
             String groupIdStr = request.getParameter("groupId");
             UUID groupId = UUID.fromString(groupIdStr);
-            UserType type = groupsRepository.fetchMemberType(groupId,auth.getEmail());
-            if(type.ordinal() < UserType.ADMIN.ordinal()) {
+            MemberType type = groupsRepository.fetchMemberType(groupId,auth.getEmail());
+            if(type.ordinal() < MemberType.ADMIN.ordinal()) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN,"Sneaky Sneaky you must be an admin to do this");
                 return;//REJECT REQUEST
             }

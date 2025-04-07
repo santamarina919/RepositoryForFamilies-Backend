@@ -1,6 +1,7 @@
 package dev.J.RepositoryForFamilies.Users;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;
@@ -10,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-//TODO remove alias column
 @Getter
 @ToString
 @NoArgsConstructor

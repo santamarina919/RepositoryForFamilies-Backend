@@ -8,7 +8,6 @@ import dev.J.RepositoryForFamilies.Users.UserInfo;
 import dev.J.RepositoryForFamilies.Users.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,11 +27,13 @@ public class GroupsService
 
     private final ListsRepository listsRepo;
 
+    private final MemberRepository memberRepo;
+
     @Transactional
     public void createGroup(String group_name, String email){
         UUID groupId = UUID.randomUUID();
         groupsRepo.createGroup(groupId,group_name, email);
-        groupsRepo.addGroupMember(groupId,email,UserType.ADMIN.name());
+        groupsRepo.addGroupMember(groupId,email, MemberType.ADMIN.name());
     }
 
     public List<GroupCardDTO> groupsWhereUserIsMember(String email)
@@ -49,15 +50,15 @@ public class GroupsService
     public void joinGroup(UUID groupId, String email)
     {
         //TODO add check for user that is already in group or already requested to join
-        groupsRepo.addGroupMember(groupId,email,UserType.UNAUTHORIZED.name());
+        groupsRepo.addGroupMember(groupId,email, MemberType.UNAUTHORIZED.name());
     }
 
     @Transactional
-    public boolean upgradeUserType(UUID groupId, String email, UserType upgradeType){
+    public boolean upgradeUserType(UUID groupId, String email, MemberType upgradeType){
 
-        UserType currentUserType = groupsRepo.fetchMemberType(groupId,email);
+        MemberType currentMemberType = groupsRepo.fetchMemberType(groupId,email);
         //Comparing using idicies a little nasty
-        if(upgradeType.ordinal() <= currentUserType.ordinal()){
+        if(upgradeType.ordinal() <= currentMemberType.ordinal()){
             return false;
         }
         groupsRepo.updateMemberType(groupId,email,upgradeType.name());
@@ -69,7 +70,7 @@ public class GroupsService
         return list;
     }
 
-    public UserType fetchMemberType(UUID groupId, String email){
+    public MemberType fetchMemberType(UUID groupId, String email){
         return groupsRepo.fetchMemberType(groupId,email);
     }
 
@@ -85,6 +86,15 @@ public class GroupsService
         return groupsRepo.isMember(groupId,email);
     }
 
+    public Integer unapprovedCount(UUID groupId) {
+        return groupsRepo.fetchUnapprovedCount(groupId);
+    }
+
+    public List<Member> fetchMembers(UUID groupId) {
+        List<Member> members = memberRepo.fetchMembers(groupId);
+        return members;
+    }
+
     public interface UserHomeDTO {
 
         GroupDetails getGroupDetails();
@@ -92,13 +102,15 @@ public class GroupsService
         //a list of users for reference for each glance object
         List<UserInfo> getUsers();
 
+        MemberType getUserType();
+
     }
 
-    public UserHomeDTO fetchGroupDetails(UUID groupId) {
+    public UserHomeDTO fetchGroupDetails(UUID groupId, EmailPasswordAuthenticationToken auth) {
 
         List<UserInfo> userInfos = userRepo.findUsersInGroup(groupId, UserInfo.class);
         GroupDetails groupDetails = groupsRepo.findById(groupId,GroupDetails.class);
-
+        MemberType currMemberType = groupsRepo.fetchMemberType(groupId,auth.getEmail());
             return new UserHomeDTO(){
                 @Override
                 public List<UserInfo> getUsers() {
@@ -110,6 +122,16 @@ public class GroupsService
                 public GroupDetails getGroupDetails() {
                     return groupDetails;
                 }
+
+                @Override
+                public MemberType getUserType() { return currMemberType; }
             };
     }
+
+    @Transactional
+    public void removeMember(UUID groupId, String email){
+        groupsRepo.removeMember(groupId,email);
+        //TODO remove everything about that user from the group
+    }
+
 }

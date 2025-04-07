@@ -1,15 +1,13 @@
 package dev.J.RepositoryForFamilies;
 
 import dev.J.RepositoryForFamilies.Groups.GroupsRepository;
-import dev.J.RepositoryForFamilies.Groups.UserType;
+import dev.J.RepositoryForFamilies.Groups.MemberType;
 import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -52,8 +50,8 @@ public class GroupFilter extends OncePerRequestFilter
             return;
         }
 
-        UserType type = groupsRepo.fetchMemberType(groupId, auth.getEmail());
-        if(type == UserType.UNAUTHORIZED) {
+        MemberType type = groupsRepo.fetchMemberType(groupId, auth.getEmail());
+        if(type == MemberType.UNAUTHORIZED) {
             String errorStr = "Not an approved member";
             response.setContentLength(contentLength);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, errorStr);

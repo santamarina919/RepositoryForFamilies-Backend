@@ -1,6 +1,6 @@
 package dev.J.RepositoryForFamilies.Groups;
 
-public enum UserType {
+public enum MemberType {
     UNAUTHORIZED,
     CITIZEN,
     ADMIN;
