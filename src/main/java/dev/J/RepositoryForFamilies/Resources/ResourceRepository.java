@@ -60,13 +60,19 @@ public interface ResourceRepository extends CrudRepository<Resource, UUID> {
     @Modifying
     @Query(value =
             "INSERT INTO reservation " +
-                    "(reservation_id,resource_id,user_id,group_id,linked_event,date,start_time,end_time,notes,approved,rejection_note) " +
-                    "VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
+                    "(event_id,group_id,resource_id,approved,rejection_note) " +
+                    "VALUES (?1,?2,?3,?4,?5)",
             nativeQuery = true)
-    void createReservation(UUID reservationId, UUID resourceId, String userId, UUID groupId,
-                           UUID linkedEvent, LocalDate date, LocalTime startTime, LocalTime endTime, String notes,
-                           boolean approved, String rejectionNote);
+    void createReservation(UUID eventId, UUID groupId, UUID resourceId, Boolean approved, String rejectionNote);
 
 
+    @Query(
+            value = "SELECT * " +
+                    "FROM reservation " +
+                    "WHERE reservation.event_id = ?1 ",
+            nativeQuery = true
+    )
+    List<Reservation.ReservationDTO> fetchAllResourcesAttatchedToEvent(UUID eventId);
 
+    <T> Optional<T> findByResourceId(UUID resourceId, Class<T> clazz);
 }

@@ -19,16 +19,14 @@ public class EventController {
 
     private final EventService eventService;
 
-    public record EventBody(String description,
-                            @DateTimeFormat(pattern = "YYYY-MM-DD") LocalDate date,
-                            LocalTime startTime,
-                            LocalTime endTime,
-                            String name) {}
 
+
+    private static int GLANCE_SIZE = 3;
 
     @GetMapping("events/api/member/glance")
     public List<EventGlance> getEventGlance(@RequestParam UUID groupId){
-        return eventService.allEventsFromGroup(groupId,EventGlance.class);
+        List<EventGlance> glances = eventService.allEventsFromGroup(groupId,EventGlance.class);
+        return glances.subList(0, Math.min(GLANCE_SIZE, glances.size()));
     }
 
     @GetMapping("/events/api/member/allevents")
@@ -43,6 +41,12 @@ public class EventController {
         List<EventDTO> v =  eventService.allEventsFromGroupFromWeek(groupId,ofWeek,EventDTO.class);
         return v;
     }
+
+    public record EventBody(String description,
+                            @DateTimeFormat(pattern = "YYYY-MM-DD") LocalDate eventDate,
+                            LocalTime startTime,
+                            LocalTime endTime,
+                            String eventName) {}
 
     @PostMapping("/events/api/member/postevent")
     public ResponseEntity<Void> postEvent(Authentication auth,

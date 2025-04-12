@@ -1,11 +1,14 @@
 package dev.J.RepositoryForFamilies.Events;
 
+import dev.J.RepositoryForFamilies.Resources.ResourceReservationDetails;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -13,21 +16,21 @@ import java.util.UUID;
 @NoArgsConstructor
 public class EventDTO {
 
-    UUID eventId;
+    private UUID eventId;
 
-    String owner;
+    private String owner;
 
-    String description;
+    private String description;
 
-    LocalDate date;
+    private LocalDate date;
 
-    LocalTime startTime;
+    private LocalTime startTime;
 
-    LocalTime endTime;
+    private LocalTime endTime;
 
-    UUID groupId;
+    private UUID groupId;
 
-    String name;
+    private String name;
 
     public EventDTO(UUID eventId, String owner, String description, LocalDate date, LocalTime startTime, LocalTime endTime, UUID groupId, String name) {
         this.eventId = eventId;
@@ -38,12 +41,13 @@ public class EventDTO {
         this.endTime = endTime;
         this.groupId = groupId;
         this.name = name;
-        this.hasWriteAccess = true;
+        this.hasWriteAccess = false;
+        this.reservedResources = new ArrayList<>();
     }
 
-    boolean hasWriteAccess;
+    private boolean hasWriteAccess;
 
-
+    private List<ResourceReservationDetails> reservedResources;
 
 
 }

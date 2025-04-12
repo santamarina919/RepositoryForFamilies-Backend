@@ -1,6 +1,8 @@
 package dev.J.RepositoryForFamilies.Resources;
 
 import dev.J.RepositoryForFamilies.Events.Event;
+import dev.J.RepositoryForFamilies.Events.EventRepository;
+import dev.J.RepositoryForFamilies.Events.EventService;
 import dev.J.RepositoryForFamilies.Groups.GroupsService;
 import dev.J.RepositoryForFamilies.Groups.MemberType;
 import jakarta.transaction.Transactional;
@@ -20,6 +22,8 @@ public class ResourceService
     private final ResourceRepository resourceRepository;
 
     private final GroupsService groupsService;
+
+    private final EventRepository eventRepository;
 
     public List<Resource> allResourcesInGroup(UUID groupId) {
         return resourceRepository.fetchAllByGroupId(groupId);
@@ -60,64 +64,46 @@ public class ResourceService
     }
 
     @Transactional
-    public boolean denyReservation(UUID reservationId, UUID resourceId, String userId, String reason){
+    public boolean denyReservation(UUID reservationId, UUID resourceId, String userId, String reason) {
         Resource resource = resourceRepository.findResourceByResourceId(resourceId).orElseThrow();
-        if(!resource.getOwner().equals(userId)){
+        if (!resource.getOwner().equals(userId)) {
             return false;
         }
 
-        if(reason == null){
+        if (reason == null) {
             reason = "Reservation has been denied by resource owner";
         }
 
-        resourceRepository.denyReservation(reservationId,reason);
+        resourceRepository.denyReservation(reservationId, reason);
         return true;
     }
 
 
     @Transactional
-    public void requestReservation(UUID resourceId,
-                                   String userId,
-                                   LocalDate reservationDate,
-                                   LocalTime startTime,
-                                   LocalTime endTime,
-                                   String notes,
-                                   UUID linkedEvent,
-                                   UUID groupId){
-        resourceRepository.createReservation(
-                UUID.randomUUID(),resourceId,userId,groupId,linkedEvent,reservationDate,startTime,endTime,notes,
-                false,null)
-        ;
+    public List<Event.Details> reserveResource(UUID resourceId,String userId,UUID linkedEvent,UUID groupId){
 
-    }
+        Event event = eventRepository.findByEventId(linkedEvent).orElseThrow();
 
+        List<Event.Details> reservationCollision = hasReservationCollision(resourceId,event.getDate(),event.getStartTime(),event.getEndTime());
+        if(reservationCollision != null && !reservationCollision.isEmpty()){
+            return reservationCollision;
+        }
 
-    @Transactional
-    public Object reserveResource(UUID resourceId,
-                                   String userId,
-                                   LocalDate reservationDate,
-                                   LocalTime startTime,
-                                   LocalTime endTime,
-                                   String notes,
-                                   UUID linkedEvent,
-                                   UUID groupId){
        Resource resource = resourceRepository.findResourceByResourceId(resourceId).orElseThrow();
        if(!resource.getOwner().equals(userId)){
-            requestReservation(resourceId,userId,reservationDate,startTime,endTime,notes,linkedEvent,groupId);
+           resourceRepository.createReservation(linkedEvent,groupId,resourceId,null,null);
            return null;
        }
-       Object reservationCollision = hasReservationCollision(resourceId,reservationDate);
-       if(reservationCollision != null){
-           return reservationCollision;
-       }
-       if(notes == null) {
-           notes = "Reserved by resource owner for this period of time";
-       }
 
-       resourceRepository.createReservation(UUID.randomUUID(),resourceId,userId,groupId,linkedEvent,reservationDate,
-               startTime,endTime,notes,true,null);
 
-       return null  ;
+
+       resourceRepository.createReservation(linkedEvent,groupId,resourceId,true,null);
+       return null;
+    }
+
+    public List<Event.Details> hasReservationCollision(UUID resourceId,  LocalDate reservationDate, LocalTime startTime, LocalTime endTime){
+        List<Event.Details> collidingEvents = eventRepository.doesCollisionExist(resourceId,reservationDate,startTime,endTime);
+        return collidingEvents;
     }
 
     @Transactional
@@ -132,9 +118,7 @@ public class ResourceService
         return true;
     }
 
-    public Object hasReservationCollision(UUID resourceId,  LocalDate reservationDate){
-        return null;
-    }
+
 
 
     /**
@@ -166,16 +150,15 @@ public class ResourceService
             LocalDateTime eventStart = LocalDateTime.of(firstEvent.getDate(),startTime == null ? LocalTime.MIN : startTime);
 
             if(now.isBefore(eventStart)){
-                //TODO available
-                //TODO until event start
                 availabilityList.add(
                         new ResourceAvailability(resource, ResourceAvailability.Availability.AVAILABLE,eventStart)
                 );
             }
             else{
-                LocalTime endTime = firstEvent.getEndTime();
-                LocalDateTime eventEnd =
-                        LocalDateTime.of(firstEvent.getDate(),endTime == null ? LocalTime.MAX : endTime);
+//TODO find out if this is needed
+//                LocalTime endTime = firstEvent.getEndTime();
+//                LocalDateTime eventEnd =
+//                        LocalDateTime.of(firstEvent.getDate(),endTime == null ? LocalTime.MAX : endTime);
                 availabilityList.add(
                         new ResourceAvailability(resource, ResourceAvailability.Availability.UNAVAILABLE,null)
                 );
@@ -184,5 +167,13 @@ public class ResourceService
 
         }
         return availabilityList;
+    }
+
+    public List<Reservation.ReservationDTO> allResourcesForEvent(UUID eventId) {
+        return resourceRepository.fetchAllResourcesAttatchedToEvent(eventId);
+    }
+
+    public <T> Optional<T> fetchResource(UUID resourceId,Class<T> clazz){
+        return resourceRepository.findByResourceId(resourceId,clazz);
     }
 }

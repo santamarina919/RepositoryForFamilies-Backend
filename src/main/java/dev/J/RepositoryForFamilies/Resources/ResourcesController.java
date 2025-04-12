@@ -1,9 +1,12 @@
 package dev.J.RepositoryForFamilies.Resources;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import dev.J.RepositoryForFamilies.Events.Event;
 import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -38,9 +41,9 @@ public class ResourcesController {
      * @param groupId
      * @return
      */
-    //todo fix
     @GetMapping("/resources/api/member/all")
     public List<Resource> listAllResources(EmailPasswordAuthenticationToken auth,@RequestParam UUID groupId) {
+
         return resourceService.allResourcesInGroup(groupId);
     }
 
@@ -59,17 +62,19 @@ public class ResourcesController {
         resourceService.deleteResource(groupId,auth.getEmail(),resource.resourceId());
     }
 
-    public record ReserveBody(String resourceId,
-                              @DateTimeFormat(pattern = "YYYY-MM-DD") LocalDate date,
-                              @JsonFormat(pattern = "HH:mm") LocalTime startTime,
-                              @JsonFormat(pattern = "HH:mm") LocalTime endTime,
-                              String notes,UUID linkedEvent){}
+    record ReserveResponse(ResourceReservationDetails resourceDetails, @Nullable List<Event.Details> collidingEvents){}
 
     @PostMapping("/resources/api/member/reserve")
-    public void reserve(@RequestParam UUID groupId, EmailPasswordAuthenticationToken auth,
-                        @RequestBody ReserveBody body) {
-        UUID resourceId = UUID.fromString(body.resourceId);
-        resourceService.reserveResource(resourceId, auth.getEmail(),body.date(),body.startTime(),body.endTime(),body.notes(),body.linkedEvent(),groupId);
+    public ResponseEntity<ReserveResponse> reserve(EmailPasswordAuthenticationToken auth, @RequestParam UUID groupId,
+                                               @RequestParam UUID resourceId, @RequestParam UUID linkedEvent) {
+        List<Event.Details> collidingEvents = resourceService.reserveResource(resourceId, auth.getEmail(),linkedEvent,groupId);
+        Resource.Details details = resourceService.fetchResource(resourceId,Resource.Details.class).orElseThrow();
+        ResourceReservationDetails reservationDetails = new ResourceReservationDetails(details,false,null);
+        return collidingEvents != null && !collidingEvents.isEmpty() ?
+
+                ResponseEntity.badRequest().body(new ReserveResponse(reservationDetails,collidingEvents)) :
+
+                ResponseEntity.ok(new ReserveResponse(reservationDetails,null));
     }
 
     public record RejectionBody(UUID reservationId, UUID resourceId){}
@@ -96,6 +101,8 @@ public class ResourcesController {
                                   @RequestBody DeleteReservationBody body){
         resourceService.deleteReservation(body.reservationId(),null,groupId,auth.getEmail());
     }
+
+
 
 
 }

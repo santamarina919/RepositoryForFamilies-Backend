@@ -3,10 +3,7 @@ package dev.J.RepositoryForFamilies.Events;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -95,4 +92,18 @@ public class Event implements Comparable<Event> {
         }
 
     }
+
+
+    public interface Details {
+        UUID getEventId();
+
+        String getName();
+
+        LocalDate getDate();
+
+        LocalTime getStartTime();
+
+        LocalTime getEndTime();
+    }
+
 }
