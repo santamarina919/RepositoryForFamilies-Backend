@@ -131,7 +131,7 @@ public class ResourceService
         List<Resource> resourceList = resourceRepository.fetchNByGroupId(groupId,numOfResources);
         List<ResourceAvailability> availabilityList = new ArrayList<>();
         for(Resource resource : resourceList){
-            List<Event> events = resource.getReservations();
+            List<Event> events = Collections.emptyList();//resource.getReservations();
             if(events.isEmpty()){
                 availabilityList.add(
                         new ResourceAvailability(resource, ResourceAvailability.Availability.AVAILABLE,null)

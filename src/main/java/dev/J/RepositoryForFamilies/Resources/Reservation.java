@@ -1,12 +1,11 @@
 package dev.J.RepositoryForFamilies.Resources;
 
-import dev.J.RepositoryForFamilies.Events.Event;
 import jakarta.annotation.Nullable;
-import jakarta.persistence.*;
-import lombok.ToString;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 
-import javax.naming.Name;
-import java.util.Set;
 import java.util.UUID;
 
 @IdClass(Reservation.ReservationId.class)
