@@ -91,13 +91,13 @@ public class ResourceService
 
        Resource resource = resourceRepository.findResourceByResourceId(resourceId).orElseThrow();
        if(!resource.getOwner().equals(userId)){
-           resourceRepository.createReservation(linkedEvent,groupId,resourceId,null,null);
+           resourceRepository.createReservation(linkedEvent,resourceId,null,null);
            return null;
        }
 
 
 
-       resourceRepository.createReservation(linkedEvent,groupId,resourceId,true,null);
+       resourceRepository.createReservation(linkedEvent,resourceId,true,null);
        return null;
     }
 

@@ -60,10 +60,10 @@ public interface ResourceRepository extends CrudRepository<Resource, UUID> {
     @Modifying
     @Query(value =
             "INSERT INTO reservation " +
-                    "(event_id,group_id,resource_id,approved,rejection_note) " +
-                    "VALUES (?1,?2,?3,?4,?5)",
+                    "(event_id,resource_id,approved,rejection_note) " +
+                    "VALUES (?1,?3,?4,?5)",
             nativeQuery = true)
-    void createReservation(UUID eventId, UUID groupId, UUID resourceId, Boolean approved, String rejectionNote);
+    void createReservation(UUID eventId, UUID resourceId, Boolean approved, String rejectionNote);
 
 
     @Query(

@@ -14,7 +14,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-@IdClass(EventId.class)
 @Entity
 @SqlResultSetMapping(
         name = "event-dto", classes = {
@@ -37,28 +36,35 @@ import java.util.UUID;
         }
 )
 public class Event implements Comparable<Event> {
+    @Column(name = "event_id")
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID eventId;
 
-    @Id
+    @Column(name = "group_id")
     private UUID groupId;
 
+    @Column(name = "owner")
     @Nonnull
     private String owner;
 
+    @Column(name = "description")
     @Nullable
     private String description;
 
+    @Column(name = "date")
     @Nonnull
     private LocalDate date;
 
     //If the start time is not null then end time cannot be null
+    @Column(name = "start_time")
     @Nullable
     private LocalTime startTime;
 
+    @Column(name = "end_time")
     @Nullable
     private LocalTime endTime;
 
+    @Column(name = "name")
     @Nonnull
     private String name;
 

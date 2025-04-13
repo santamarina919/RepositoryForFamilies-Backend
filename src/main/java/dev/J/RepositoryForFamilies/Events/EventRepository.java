@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface EventRepository extends CrudRepository<Event, EventId> {
+public interface EventRepository extends CrudRepository<Event, UUID> {
 
     Optional<Event> findByEventId(UUID eventId);
 

@@ -11,14 +11,12 @@ import java.util.UUID;
 @IdClass(Reservation.ReservationId.class)
 @Entity(name = "reservation")
 public class Reservation {
-    static record ReservationId (UUID eventId, UUID groupId, UUID resourceId){}
+    static record ReservationId (UUID eventId, UUID resourceId){}
 
     @Id
     @Column(name = "event_id")
     private UUID eventId;
-    @Id
-    @Column(name = "group_id")
-    private UUID groupId;
+
     @Id
     @Column(name = "resource_id")
     private UUID resourceId;
