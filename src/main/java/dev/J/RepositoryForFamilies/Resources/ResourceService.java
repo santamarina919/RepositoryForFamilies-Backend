@@ -179,10 +179,5 @@ public class ResourceService
         return resourceRepository.findByResourceId(resourceId,clazz);
     }
 
-    public Reservation test() {
-        Reservation first = repo.reservations().getFirst();
-        System.out.println(first);
-        return first;
-    }
 
 }

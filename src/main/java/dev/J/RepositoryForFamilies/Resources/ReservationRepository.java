@@ -13,5 +13,5 @@ public interface ReservationRepository extends JpaRepository<Reservation,Reserva
             "FROM reservation r " +
             "INNER JOIN Event event on r.eventId = event.eventId " +
             "INNER JOIN resource on r.resourceId = resource.resourceId")
-    List<Reservation> reservations();
+    List<Reservation> allReservations();
 }
