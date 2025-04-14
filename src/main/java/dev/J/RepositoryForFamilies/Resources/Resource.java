@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JoinColumnOrFormula;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -15,8 +16,8 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-public class Resource {
+@Entity(name = "resource")
+public class Resource implements Serializable {
 
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "resource_id",insertable = false,updatable = false)
@@ -30,15 +31,14 @@ public class Resource {
 
     private String type;
 
-    @ManyToMany(targetEntity = Event.class)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "reservation",
             joinColumns = {
-                @JoinColumn(name = "resource_id")
+                @JoinColumn(name = "resource_id"),
             },
             inverseJoinColumns = {
-                    @JoinColumn(name = "event_id"),
-                    @JoinColumn(name = "group_id")
+                    @JoinColumn(name = "event_id")
             }
     )
     private Set<Event> events;

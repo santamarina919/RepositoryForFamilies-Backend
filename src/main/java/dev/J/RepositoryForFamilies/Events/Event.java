@@ -5,6 +5,7 @@ import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Set;
@@ -35,7 +36,7 @@ import java.util.UUID;
         )
         }
 )
-public class Event implements Comparable<Event> {
+public class Event implements Comparable<Event>, Serializable {
     @Column(name = "event_id")
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID eventId;

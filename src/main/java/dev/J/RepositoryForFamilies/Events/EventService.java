@@ -27,9 +27,8 @@ public class EventService {
     private final ResourceService resourceService;
 
     @Transactional
-    public void postEvent(String userId, UUID uuid, EventController.EventBody body){
-        UUID eventId = UUID.randomUUID();
-        Event event = new Event(eventId,uuid,userId,body.description(),body.eventDate(),body.startTime(),body.endTime(),body.eventName());
+    public void postEvent(String userId, UUID groupId, EventController.EventBody body){
+        Event event = new Event(null,groupId ,userId,body.description(),body.eventDate(),body.startTime(),body.endTime(),body.eventName());
         eventRepository.save(event);
     }
 

@@ -50,10 +50,10 @@ public class EventController {
 
     @PostMapping("/events/api/member/postevent")
     public ResponseEntity<Void> postEvent(Authentication auth,
-                                          @RequestParam("groupId") String groupIdStr,
+                                          @RequestParam UUID groupId,
                                           @RequestBody EventBody eventBody){
 
-        eventService.postEvent(auth.getName(),UUID.fromString(groupIdStr),eventBody);
+        eventService.postEvent(auth.getName(),groupId,eventBody);
 
 
         return ResponseEntity

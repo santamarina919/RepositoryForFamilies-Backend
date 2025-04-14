@@ -25,6 +25,8 @@ public class ResourceService
 
     private final EventRepository eventRepository;
 
+    private final ReservationRepository repo;
+
     public List<Resource> allResourcesInGroup(UUID groupId) {
         return resourceRepository.fetchAllByGroupId(groupId);
     }
@@ -81,7 +83,7 @@ public class ResourceService
 
     @Transactional
     public List<Event.Details> reserveResource(UUID resourceId,String userId,UUID linkedEvent,UUID groupId){
-
+        System.out.println(linkedEvent);
         Event event = eventRepository.findByEventId(linkedEvent).orElseThrow();
 
         List<Event.Details> reservationCollision = hasReservationCollision(resourceId,event.getDate(),event.getStartTime(),event.getEndTime());
@@ -176,4 +178,11 @@ public class ResourceService
     public <T> Optional<T> fetchResource(UUID resourceId,Class<T> clazz){
         return resourceRepository.findByResourceId(resourceId,clazz);
     }
+
+    public Reservation test() {
+        Reservation first = repo.reservations().getFirst();
+        System.out.println(first);
+        return first;
+    }
+
 }

@@ -103,6 +103,10 @@ public class ResourcesController {
     }
 
 
+    @GetMapping("test")
+    public Reservation res(){
+        return resourceService.test();
+    }
 
 
 }

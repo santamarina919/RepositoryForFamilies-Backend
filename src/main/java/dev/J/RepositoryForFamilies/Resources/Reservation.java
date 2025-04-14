@@ -1,25 +1,49 @@
 package dev.J.RepositoryForFamilies.Resources;
 
+import dev.J.RepositoryForFamilies.Events.Event;
 import jakarta.annotation.Nullable;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-@IdClass(Reservation.ReservationId.class)
+@Setter
+@Getter
 @Entity(name = "reservation")
-public class Reservation {
-    static record ReservationId (UUID eventId, UUID resourceId){}
+@IdClass(Reservation.ReservationId.class)
+public class Reservation implements Serializable {
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Setter
+    @Getter
+    @Embeddable
+    public static class ReservationId implements Serializable {
+        UUID resourceId;
+        UUID eventId;
+    }
+
+    @Id
+    @Column(name = "resource_id")
+    private UUID resourceId;
 
     @Id
     @Column(name = "event_id")
     private UUID eventId;
 
-    @Id
-    @Column(name = "resource_id")
-    private UUID resourceId;
+    @MapsId
+    @ManyToOne
+    @JoinColumn(name = "event_id")
+    private Event event;
+
+    @MapsId
+    @ManyToOne
+    @JoinColumn(name = "resource_id")
+    private Resource resource;
 
     @Nullable
     private Boolean approved;
@@ -31,6 +55,18 @@ public class Reservation {
 
     public interface ReservationDTO {
         UUID getResourceId();
+
+        Boolean getApproved();
+
+        String getRejectionNote();
+    }
+
+    public interface Details {
+        Object getId();
+
+        Event getEvent();
+
+        Resource getResource();
 
         Boolean getApproved();
 
