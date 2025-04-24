@@ -111,6 +111,10 @@ public class Event implements Comparable<Event>, Serializable {
         LocalTime getStartTime();
 
         LocalTime getEndTime();
+
+        String getDescription();
+
+        String getOwner();
     }
 
 }

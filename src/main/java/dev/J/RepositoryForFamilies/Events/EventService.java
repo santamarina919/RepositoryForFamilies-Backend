@@ -2,10 +2,7 @@ package dev.J.RepositoryForFamilies.Events;
 
 import dev.J.RepositoryForFamilies.Groups.GroupsService;
 import dev.J.RepositoryForFamilies.Groups.MemberType;
-import dev.J.RepositoryForFamilies.Resources.Reservation;
-import dev.J.RepositoryForFamilies.Resources.Resource;
-import dev.J.RepositoryForFamilies.Resources.ResourceReservationDetails;
-import dev.J.RepositoryForFamilies.Resources.ResourceService;
+import dev.J.RepositoryForFamilies.Resources.*;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,9 +24,10 @@ public class EventService {
     private final ResourceService resourceService;
 
     @Transactional
-    public void postEvent(String userId, UUID groupId, EventController.EventBody body){
+    public UUID createEvent(String userId, UUID groupId, EventController.EventBody body){
         Event event = new Event(null,groupId ,userId,body.description(),body.eventDate(),body.startTime(),body.endTime(),body.eventName());
         eventRepository.save(event);
+        return event.getEventId();
     }
 
     @Transactional
@@ -40,6 +38,7 @@ public class EventService {
         if(!e.getOwner().equals(userId) && type != MemberType.ADMIN){
             return false;
         }
+        eventRepository.deleteAssociatedReservations(e.getEventId());
         eventRepository.delete(e);
         return true;
     }
@@ -56,7 +55,7 @@ public class EventService {
             }
             List<Reservation.ReservationDTO> linkedResources = resourceService.allResourcesForEvent(event.getEventId());
             for(Reservation.ReservationDTO res : linkedResources){
-                Resource.Details resource = resourceService.fetchResource(res.getResourceId(),Resource.Details.class).orElseThrow();
+                ResourceDetails resource = resourceService.fetchResource(res.getResourceId(), ResourceDetails.class).orElseThrow();
                 event.getReservedResources().add(new ResourceReservationDetails(resource,res.getApproved(),res.getRejectionNote()));
             }
         }
@@ -73,5 +72,9 @@ public class EventService {
 
     public List<Event.Details> doesCollisionExist(UUID resourceId, LocalDate reservationDate, LocalTime startTime, LocalTime endTime) {
         return eventRepository.doesCollisionExist(resourceId,reservationDate,startTime,endTime);
+    }
+
+    public List<Event.Details> allUserEvents(String email, UUID groupId) {
+        return eventRepository.fetchAllEventsFromUser(email,groupId);
     }
 }

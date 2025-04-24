@@ -6,8 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,33 +14,14 @@ import java.util.UUID;
 public interface ResourceRepository extends CrudRepository<Resource, UUID> {
     Optional<Resource> findResourceByResourceId(UUID resourceId);
 
-    @Modifying
-    @Query(value =
-            "UPDATE reservation " +
-            "SET approved = true " +
-            "WHERE reservation_id = ?1",
-            nativeQuery = true)
-    void approveReservation(UUID reservationId);
-
-    @Modifying
-    @Query(
-        value = "UPDATE reservation " +
-                "SET approved = false," +
-                "rejection_note = ?2 " +
-                "WHERE reservation_id = ?1",
-            nativeQuery = true
-    )
-    void denyReservation(UUID reservationId, String reason);
-
     List<Resource> findAllByOwner(String ownerId);
 
     @Query( value =
-            "SELECT resource.resource_id, resource.owner, resource.name,resource.description, resource.type " +
-            "FROM resource " +
-            "INNER JOIN members ON members.user_id = resource.owner " +
-            "WHERE members.group_id = ?1",
-            nativeQuery = true)
-    List<Resource> fetchAllByGroupId(UUID groupId);
+            "SELECT new dev.J.RepositoryForFamilies.Resources.ResourceDetails(r.resourceId,r.owner,r.name,r.description,r.type) " +
+            "FROM Resource r " +
+            "INNER JOIN members m ON r.owner = m.userId " +
+            "WHERE m.groupId = ?1 ")
+    List<ResourceDetails> fetchAllByGroupId(UUID groupId);
 
     @Query( value =
             "SELECT resource.resource_id, resource.owner, resource.name,resource.description, resource.type " +

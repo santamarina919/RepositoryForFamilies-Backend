@@ -3,10 +3,7 @@ package dev.J.RepositoryForFamilies.Resources;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
-import org.springframework.cglib.core.Local;
-import org.springframework.web.bind.annotation.GetMapping;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 //Status change = when availability will flip to inverse
@@ -15,7 +12,7 @@ public class ResourceAvailability {
 
 
     @JsonUnwrapped
-    private Resource.Details resource;
+    private ResourceDetails resource;
 
     private Availability availability;
 
@@ -31,7 +28,7 @@ public class ResourceAvailability {
         this.availability = availability;
         this.statusChange = statusChange;
 
-        this.resource = Resource.Details.builder()
+        this.resource = ResourceDetails.builder()
                 .resourceId(resource.getResourceId())
                 .description(resource.getDescription())
                 .name(resource.getName())

@@ -1,7 +1,6 @@
 package dev.J.RepositoryForFamilies.Groups;
 
 import dev.J.RepositoryForFamilies.Events.EventRepository;
-import dev.J.RepositoryForFamilies.Lists.ListsRepository;
 import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
 import dev.J.RepositoryForFamilies.Users.UserEmailNameOnly;
 import dev.J.RepositoryForFamilies.Users.UserInfo;
@@ -24,9 +23,7 @@ public class GroupsService
     private final UserRepository userRepo;
 
     private final EventRepository eventRepo;
-
-    private final ListsRepository listsRepo;
-
+    
     private final MemberRepository memberRepo;
 
     @Transactional

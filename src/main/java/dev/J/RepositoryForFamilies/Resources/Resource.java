@@ -16,7 +16,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "resource")
+@Entity
 public class Resource implements Serializable {
 
     @Id @GeneratedValue(strategy = GenerationType.UUID)
@@ -43,18 +43,4 @@ public class Resource implements Serializable {
     )
     private Set<Event> events;
 
-    @Getter
-    @Builder
-    public static class Details {
-
-        UUID resourceId;
-
-        String owner;
-
-        String name;
-
-        String description;
-
-        String type;
-    }
 }

@@ -2,7 +2,6 @@ package dev.J.RepositoryForFamilies.Resources;
 
 import dev.J.RepositoryForFamilies.Events.Event;
 import dev.J.RepositoryForFamilies.Events.EventRepository;
-import dev.J.RepositoryForFamilies.Events.EventService;
 import dev.J.RepositoryForFamilies.Groups.GroupsService;
 import dev.J.RepositoryForFamilies.Groups.MemberType;
 import jakarta.transaction.Transactional;
@@ -27,8 +26,12 @@ public class ResourceService
 
     private final ReservationRepository repo;
 
-    public List<Resource> allResourcesInGroup(UUID groupId) {
+    public List<ResourceDetails> fetchAllResourcesInGroup(UUID groupId) {
         return resourceRepository.fetchAllByGroupId(groupId);
+    }
+
+    public List<ReservationDetails> fetchAllReservations(UUID groupId){
+        return repo.allReservations(groupId);
     }
 
 
@@ -55,18 +58,18 @@ public class ResourceService
     }
 
     @Transactional
-    public boolean approveReservation(UUID reservationId, UUID resourceId, String userId){
+    public boolean approveReservation(UUID resourceId, UUID eventId, String userId){
         Resource resource = resourceRepository.findResourceByResourceId(resourceId).orElseThrow();
         if(!resource.getOwner().equals(userId)){
             return false;
         }
 
-        resourceRepository.approveReservation(reservationId);
+        repo.approveReservation(resourceId,eventId);
         return true;
     }
 
     @Transactional
-    public boolean denyReservation(UUID reservationId, UUID resourceId, String userId, String reason) {
+    public boolean denyReservation(UUID resourceId, UUID eventId, String userId, String reason) {
         Resource resource = resourceRepository.findResourceByResourceId(resourceId).orElseThrow();
         if (!resource.getOwner().equals(userId)) {
             return false;
@@ -76,7 +79,7 @@ public class ResourceService
             reason = "Reservation has been denied by resource owner";
         }
 
-        resourceRepository.denyReservation(reservationId, reason);
+        repo.rejectReservation(resourceId,eventId,reason);
         return true;
     }
 

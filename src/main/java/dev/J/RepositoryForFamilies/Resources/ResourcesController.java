@@ -1,16 +1,12 @@
 package dev.J.RepositoryForFamilies.Resources;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import dev.J.RepositoryForFamilies.Events.Event;
 import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -42,9 +38,14 @@ public class ResourcesController {
      * @return
      */
     @GetMapping("/resources/api/member/all")
-    public List<Resource> listAllResources(EmailPasswordAuthenticationToken auth,@RequestParam UUID groupId) {
+    public List<ResourceDetails> listAllResources(EmailPasswordAuthenticationToken auth, @RequestParam UUID groupId) {
+        List<ResourceDetails> resources = resourceService.fetchAllResourcesInGroup(groupId);
+        return resources;
+    }
 
-        return resourceService.allResourcesInGroup(groupId);
+    @GetMapping("/reservations/api/member/all")
+    public List<ReservationDetails> listAllReservations(@RequestParam UUID groupId){
+        return resourceService.fetchAllReservations(groupId);
     }
 
     public record CreateResourceBody(String resourceName, String description,String type){}
@@ -62,13 +63,13 @@ public class ResourcesController {
         resourceService.deleteResource(groupId,auth.getEmail(),resource.resourceId());
     }
 
-    record ReserveResponse(ResourceReservationDetails resourceDetails, @Nullable List<Event.Details> collidingEvents){}
+    public record ReserveResponse(ResourceReservationDetails resourceDetails, @Nullable List<Event.Details> collidingEvents){}
 
     @PostMapping("/resources/api/member/reserve")
     public ResponseEntity<ReserveResponse> reserve(EmailPasswordAuthenticationToken auth, @RequestParam UUID groupId,
                                                @RequestParam UUID resourceId, @RequestParam UUID linkedEvent) {
         List<Event.Details> collidingEvents = resourceService.reserveResource(resourceId, auth.getEmail(),linkedEvent,groupId);
-        Resource.Details details = resourceService.fetchResource(resourceId,Resource.Details.class).orElseThrow();
+        ResourceDetails details = resourceService.fetchResource(resourceId, ResourceDetails.class).orElseThrow();
         ResourceReservationDetails reservationDetails = new ResourceReservationDetails(details,false,null);
         return collidingEvents != null && !collidingEvents.isEmpty() ?
 
@@ -77,20 +78,20 @@ public class ResourcesController {
                 ResponseEntity.ok(new ReserveResponse(reservationDetails,null));
     }
 
-    public record RejectionBody(UUID reservationId, UUID resourceId){}
+    public record RejectionBody(UUID resourceId, UUID eventId, String rejectionNote){}
 
     @PostMapping("resources/api/member/rejectreservation")
-    public void rejectReservation(@RequestParam(name = "groupId") String groupIdStr, EmailPasswordAuthenticationToken auth,
-                                  @RequestBody RejectionBody body,String rejectionNote){
-        resourceService.denyReservation(body.reservationId(),body.resourceId(),auth.getEmail(),rejectionNote);
+    public void rejectReservation(@RequestParam UUID groupId, EmailPasswordAuthenticationToken auth,
+                                  @RequestBody RejectionBody body){
+        resourceService.denyReservation(body.resourceId(),body.eventId(),auth.getEmail(),body.rejectionNote());
     }
 
-    public record ApprovalBody(UUID reservationId, UUID resourceId){}
+    public record ApprovalBody(UUID resourceId, UUID eventId){}
 
     @PostMapping("resources/api/member/approvereservation")
-    public void approveReservation(@RequestParam(name = "groupId") String groupIdStr, EmailPasswordAuthenticationToken auth,
+    public void approveReservation(@RequestParam UUID groupId, EmailPasswordAuthenticationToken auth,
                                    @RequestBody ApprovalBody body){
-        resourceService.approveReservation(body.reservationId(),body.resourceId(),auth.getEmail());
+        resourceService.approveReservation(body.resourceId(),body.eventId(),auth.getEmail());
     }
 
     public record DeleteReservationBody(UUID reservationId){}

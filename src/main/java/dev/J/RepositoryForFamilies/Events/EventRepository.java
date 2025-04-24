@@ -1,6 +1,7 @@
 package dev.J.RepositoryForFamilies.Events;
 
 import jakarta.persistence.SqlResultSetMapping;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -58,4 +59,18 @@ public interface EventRepository extends CrudRepository<Event, UUID> {
     )
     List<Event.Details> doesCollisionExist(UUID resourceId, LocalDate reservationDate, LocalTime startTime, LocalTime endTime);
 
+    @Query(
+            value = "SELECT e " +
+                    "FROM Event e " +
+                    "WHERE e.owner = ?1 AND e.groupId = ?2"
+    )
+    List<Event.Details> fetchAllEventsFromUser(String email, UUID groupId);
+
+
+    @Modifying
+    @Query(
+            value = "DELETE FROM Reservation r " +
+                    "WHERE r.eventId = ?1"
+    )
+    void deleteAssociatedReservations(UUID eventId);
 }

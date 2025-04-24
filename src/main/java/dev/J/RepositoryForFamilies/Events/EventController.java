@@ -42,6 +42,11 @@ public class EventController {
         return v;
     }
 
+    @GetMapping("/events/api/member/myevents")
+    public List<Event.Details> myEvents(@RequestParam UUID groupId, EmailPasswordAuthenticationToken auth){
+        return eventService.allUserEvents(auth.getEmail(),groupId);
+    }
+
     public record EventBody(String description,
                             @DateTimeFormat(pattern = "YYYY-MM-DD") LocalDate eventDate,
                             LocalTime startTime,
@@ -49,16 +54,15 @@ public class EventController {
                             String eventName) {}
 
     @PostMapping("/events/api/member/postevent")
-    public ResponseEntity<Void> postEvent(Authentication auth,
+    public ResponseEntity<UUID> postEvent(Authentication auth,
                                           @RequestParam UUID groupId,
                                           @RequestBody EventBody eventBody){
 
-        eventService.postEvent(auth.getName(),groupId,eventBody);
+        UUID newEventID = eventService.createEvent(auth.getName(),groupId,eventBody);
 
 
         return ResponseEntity
-                .ok()
-                .build();
+                .ok(newEventID);
     }
 
 

@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Setter
 @Getter
-@Entity(name = "reservation")
+@Entity
 @IdClass(Reservation.ReservationId.class)
 public class Reservation implements Serializable {
 
