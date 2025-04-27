@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-@Entity(name = "groups")
+@Entity
 public class Groups
 {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
@@ -18,6 +18,7 @@ public class Groups
     @Column(name = "group_name")
     private String name;
 
+    @Column
     private String owner;
 
 

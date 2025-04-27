@@ -1,10 +1,7 @@
 package dev.J.RepositoryForFamilies.Kitchen;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
@@ -12,13 +9,13 @@ import lombok.Setter;
 @Entity
 public class Ingredient {
 
-
+    @EqualsAndHashCode
     @Getter
     @Setter
     @Embeddable
     @AllArgsConstructor
     @NoArgsConstructor
-    private static class IngredientId {
+    public static class IngredientId {
         private String mealId;
 
         private String itemId;
@@ -47,5 +44,20 @@ public class Ingredient {
 
     @Column
     private String quantity;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class IngredientDetails{
+
+        private String mealName;
+
+        private String itemName;
+
+        private String quantity;
+
+        private String unit;
+
+    }
 
 }

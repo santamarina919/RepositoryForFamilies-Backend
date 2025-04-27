@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CollectionId;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @ToString
@@ -17,10 +19,16 @@ public class Meal {
     @Column
     private String name;
 
+    @Column(name = "owning_group", insertable = false,updatable = false)
+    private UUID owningGroup;
+
+    @JoinColumn(name = "owning_group")
     @ManyToOne
-    private Groups owningGroup;
+    private Groups creatingGroup;
 
     @Column(name = "time_to_prepare")
     private double timeToPrepare;
+
+
 
 }

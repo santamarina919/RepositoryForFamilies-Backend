@@ -10,14 +10,8 @@ import lombok.*;
 @ToString
 @IdClass(Direction.class)
 @Entity
-public class Direction {
+public class Direction implements Comparable<Direction>{
 
-
-    public static class DirectionId {
-        private String mealId;
-
-        private int step;
-    }
 
     @Id
     @Column(name = "meal_Id")
@@ -27,6 +21,9 @@ public class Direction {
     @Column
     private int step;
 
+    @Column
+    private int optional;
+
     @MapsId
     @ManyToOne
     @JoinColumn(name = "meal_id")
@@ -34,5 +31,10 @@ public class Direction {
 
     @Column(name = "direction_str")
     private String directionString;
+
+    @Override
+    public int compareTo(Direction o) {
+        return this.step - o.step;
+    }
 
 }

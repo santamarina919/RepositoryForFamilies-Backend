@@ -2,9 +2,7 @@ package dev.J.RepositoryForFamilies.Kitchen;
 
 import com.fasterxml.jackson.core.sym.NameN;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Setter
@@ -13,6 +11,9 @@ import lombok.ToString;
 @Entity(name = "Sub_Meal")
 public class SubMeal {
 
+    @EqualsAndHashCode
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class SubMealId{
         private String primaryMeal;
 
@@ -39,4 +40,17 @@ public class SubMeal {
 
 
     private boolean optional;
+
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MealDetails {
+        private String primaryMeal;
+
+        private String subMeal;
+
+        private boolean optional;
+    }
 }

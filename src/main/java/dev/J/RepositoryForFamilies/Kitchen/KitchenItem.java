@@ -17,4 +17,9 @@ public class KitchenItem {
     @Id
     @Column(name = "name")
     private String name;
+
+    @Override
+    public int hashCode(){
+        return name.hashCode();
+    }
 }
