@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CollectionId;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -28,6 +29,7 @@ public class Meal {
 
     @Column(name = "time_to_prepare")
     private double timeToPrepare;
+
 
 
 

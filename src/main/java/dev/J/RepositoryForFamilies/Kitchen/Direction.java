@@ -22,7 +22,7 @@ public class Direction implements Comparable<Direction>{
     private int step;
 
     @Column
-    private int optional;
+    private boolean optional;
 
     @MapsId
     @ManyToOne

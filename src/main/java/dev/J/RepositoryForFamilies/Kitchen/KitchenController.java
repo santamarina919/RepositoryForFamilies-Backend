@@ -15,8 +15,18 @@ public class KitchenController {
     private final KitchenService kitchenService;
 
     @GetMapping("kitchen/api/member/allmeals")
-    public Collection<FinalMealDTO> getAllMeals(@RequestParam UUID groupId){
+    public Collection<FullMealDTO> getAllMeals(@RequestParam UUID groupId){
         return kitchenService.allMeals(groupId);
+    }
+
+    @GetMapping("kitchen/api/member/ingredients")
+    public List<KitchenItem> getAllItems(@RequestParam UUID groupId){
+        return kitchenService.allItems(groupId);
+    }
+
+    @GetMapping("kitchen/api/member/mealcount")
+    public Integer getMealCount(@RequestParam UUID groupId){
+        return kitchenService.mealCount(groupId);
     }
 
     @GetMapping("kitchen/api/member/allmealssimple")
@@ -25,11 +35,11 @@ public class KitchenController {
     }
 
     public record CreateMealBody(String mealName, double timeToPrepare,
-                                 List<Ingredient.IngredientDetails> ingredients, List<SubMeal.MealDetails> subnMeals, List<DirectionDetails> directions){}
+                                 List<Ingredient.IngredientDetails> ingredients, List<DirectionDetails> directions){}
 
     @PostMapping("kitchen/api/member/createmeal")
     public void createMeal(@RequestParam UUID groupId, @RequestBody CreateMealBody body){
-        kitchenService.createMeal(groupId,body.mealName,body.timeToPrepare,body.ingredients,body.subnMeals,body.directions);
+        kitchenService.createMeal(groupId,body.mealName,body.timeToPrepare,body.ingredients,body.directions);
     }
 
     @PostMapping("kitchen/api/admin/member/deletemeal")
@@ -57,5 +67,16 @@ public class KitchenController {
     public void deleteKitchenItem(@RequestParam UUID groupId, @RequestBody String itemName){
         kitchenService.deleteKitchenItem(itemName);
     }
+
+    @GetMapping("kitchen/api/member/meal")
+    public FullMealDTO getMeal(@RequestParam UUID groupId, @RequestParam String mealId){
+        return kitchenService.getMeal(mealId);
+    }
+
+    @GetMapping("kitchen/api/member/item")
+    public KitchenItem getItem(@RequestParam UUID groupId, @RequestParam String itemName){
+        return kitchenService.getItem(itemName);
+    }
+
 
 }

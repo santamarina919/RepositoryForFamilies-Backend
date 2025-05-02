@@ -14,14 +14,20 @@ import java.util.UUID;
 public interface MealRepository extends JpaRepository<Meal,String> {
 
     @Query(value =
-            "SELECT new dev.J.RepositoryForFamilies.Kitchen.IntermediateMealDTO(meal,dir,kitchenItem) " +
+            "SELECT new dev.J.RepositoryForFamilies.Kitchen.MealDetails(meal) " +
             "FROM Meal meal " +
-            "INNER JOIN Direction dir on meal.name = dir.mealId " +
-            "INNER JOIN Ingredient ingredient ON meal.name = ingredient.mealId " +
-            "INNER JOIN Kitchen_Item kitchenItem ON ingredient.itemName = kitchenItem.name " +
-            "WHERE meal.creatingGroup.id = ?1 "
+            "WHERE meal.creatingGroup.id = ?1"
     )
-    List<IntermediateMealDTO> fetchAllMeals(UUID groupId);
+    List<MealDetails> fetchAllMeals(UUID groupId);
+
+
+    @Query(value =
+            "SELECT new dev.J.RepositoryForFamilies.Kitchen.DirectionDetails(direction.step,direction.directionString,direction.optional) " +
+            "FROM Direction direction " +
+            "WHERE direction.meal.name = ?1"
+    )
+    List<DirectionDetails> fetchMealDirections(String mealId);
+
 
     <T> List<T> findAllByOwningGroup(UUID groupId, Class<T> clazz);
 
@@ -32,4 +38,21 @@ public interface MealRepository extends JpaRepository<Meal,String> {
             nativeQuery = true
     )
     void createMeal(String mealName, UUID groupId, double timeToPrepare);
+
+    @Query(
+            value = "SELECT COUNT(*) " +
+                    "FROM meal " +
+                    "WHERE meal.owning_group = ?1",
+            nativeQuery = true
+    )
+    int fetchMealCount(UUID groupId);
+
+
+    @Query(
+            value =
+                "SELECT new dev.J.RepositoryForFamilies.Kitchen.KitchenItem(item.name) " +
+                "FROM Kitchen_Item item " +
+                "INNER JOIN Ingredient i ON i.meal.name = ?1 "
+    )
+    List<KitchenItem> fetchIngredients(String mealId);
 }
