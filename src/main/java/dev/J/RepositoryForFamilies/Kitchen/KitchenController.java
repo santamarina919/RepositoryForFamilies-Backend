@@ -1,11 +1,12 @@
 package dev.J.RepositoryForFamilies.Kitchen;
 
+import dev.J.RepositoryForFamilies.Users.EmailPasswordAuthenticationToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 @CrossOrigin(origins = {"http://localhost:4200"}, allowCredentials = "true")
@@ -76,6 +77,30 @@ public class KitchenController {
     @GetMapping("kitchen/api/member/item")
     public KitchenItem getItem(@RequestParam UUID groupId, @RequestParam String itemName){
         return kitchenService.getItem(itemName);
+    }
+
+    @PostMapping("kitchen/api/member/votemeal")
+    public void voteMeal(EmailPasswordAuthenticationToken authentication, @RequestParam UUID groupId, @RequestParam String mealId, @RequestParam LocalDate date, @RequestParam MealType type){
+        kitchenService.voteMeal(authentication.getEmail(), date,type,mealId, groupId);
+    }
+
+    @GetMapping("kitchen/api/member/mealplanoutcome")
+    public List<List<VotedMeal>> getMealPlanOutlook(@RequestParam UUID groupId){
+
+        LocalDate todaysDate = LocalDate.now();
+
+        List<List<VotedMeal>> mealPlans = new ArrayList<>();
+
+        Stream<LocalDate> weekDates = todaysDate.datesUntil(todaysDate.plusDays(7));
+        weekDates.forEach(date -> {
+            mealPlans.add(kitchenService.getVotedMealForDate(date,groupId));
+        });
+        return mealPlans;
+    }
+
+    @GetMapping("kitchen/api/member/mealplanstats")
+    public Object getMealPlanStats(@RequestParam UUID groupId){
+        return null;
     }
 
 
